@@ -14,6 +14,7 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+        working-directory: ./chatbot
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -22,3 +23,4 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHATBOT_F6D84 }}'
           channelId: live
           projectId: chatbot-f6d84
+        working-directory: ./chatbot
