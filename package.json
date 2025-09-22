@@ -1,11 +1,18 @@
 {
-  "name": "meu-chatbot",
+  "name": "html-css",
   "version": "1.0.0",
-  "description": "Um chatbot simples para demonstração.",
-  "main": "index.js",
+  "description": "A template for HTML and CSS",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "serve"
   },
-  "author": "",
-  "license": "ISC"
+  "keywords": [
+    "html",
+    "css"
+  ],
+  "author": "Ives van Hoorne",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "11.2.0"
+  }
 }
