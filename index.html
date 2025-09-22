@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Genesis</title>
+    <title>ChatBot Completo</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -23,63 +25,11 @@
         background: linear-gradient(135deg, #1a1a1a, #333);
         color: #fff;
       }
-      .form-container {
-        background: #fff;
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        width: 400px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        border: 5px solid #4caf50;
-        text-align: center;
-      }
-      body.dark-mode .form-container {
-        background: #1e1e1e;
-        border: 5px solid #2e7d32;
-      }
-      .form-container h2 {
-        color: #4caf50;
-        font-size: 2em;
-        margin-bottom: 10px;
-      }
-      .form-container p {
-        color: #555;
-      }
-      .form-container input {
-        width: 100%;
-        padding: 15px;
-        border-radius: 15px;
-        border: 1px solid #ddd;
-        font-size: 1rem;
-        box-sizing: border-box;
-      }
-      .form-container button {
-        padding: 15px;
-        border-radius: 15px;
-        border: none;
-        background: #4caf50;
-        color: white;
-        font-size: 1.1rem;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
-      .form-container button:hover {
-        background: #66bb6a;
-      }
-      .form-toggle {
-        font-size: 0.9em;
-        color: #007bff;
-        cursor: pointer;
-        margin-top: 10px;
-      }
       #chat-wrapper {
         width: 1200px;
-        height: 650px;
+        height: 800px;
         margin: 20px auto;
-        display: none; /* Inicia oculto */
+        display: flex;
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -87,187 +37,262 @@
         border: 5px solid #4caf50;
       }
       body.dark-mode #chat-wrapper {
-        background: #1e1e1e;
-        border: 5px solid #2e7d32;
+        background: #2a2a2a;
+        border: 5px solid #66bb6a;
       }
       #sidebar {
-        width: 260px;
-        background: rgba(224, 255, 224, 0.8);
+        width: 280px;
+        background-color: #f0f2f5;
+        padding: 20px;
+        border-right: 1px solid #ddd;
         display: flex;
         flex-direction: column;
-        padding: 12px;
         gap: 10px;
         overflow-y: auto;
-        border-right: 2px solid #4caf50;
       }
       body.dark-mode #sidebar {
-        background: #222;
-        border-right: 2px solid #2e7d32;
+        background-color: #1a1a1a;
+        border-right: 1px solid #444;
       }
       .sidebar-btn {
         padding: 12px;
-        border-radius: 18px;
-        background: #ccc;
+        border-radius: 10px;
+        text-align: left;
         cursor: pointer;
-        font-size: 14px;
+        background-color: #e2e4e7;
+        color: #333;
+        font-weight: 500;
+        transition: background-color 0.2s, transform 0.2s;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: background 0.3s;
         position: relative;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      .sidebar-btn.active {
-        background: #4caf50;
-        color: #fff;
-        font-weight: bold;
-        border: 2px solid #2e7d32;
+      body.dark-mode .sidebar-btn {
+        background-color: #333;
+        color: #ddd;
       }
       .sidebar-btn:hover {
-        background: #66bb6a;
+        background-color: #d1d4d8;
+        transform: translateY(-2px);
+      }
+      body.dark-mode .sidebar-btn:hover {
+        background-color: #444;
+      }
+      .sidebar-btn.active {
+        background-color: #d1d4d8;
+        border-left: 4px solid #4caf50;
+        padding-left: 8px;
+        font-weight: bold;
+      }
+      body.dark-mode .sidebar-btn.active {
+        background-color: #444;
+        border-left: 4px solid #66bb6a;
       }
       .sidebar-btn-options {
-        cursor: pointer;
         font-weight: bold;
+        font-size: 1.2em;
+        cursor: pointer;
         padding: 0 5px;
       }
       .chat-menu {
         position: absolute;
-        top: 40px;
-        right: 10px;
+        top: 100%;
+        right: 0;
         background: #fff;
         border: 1px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        flex-direction: column;
         z-index: 10;
         display: none;
-        flex-direction: column;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        min-width: 120px;
+      }
+      body.dark-mode .chat-menu {
+        background: #333;
+        border: 1px solid #555;
       }
       .chat-menu button {
         background: none;
         border: none;
         padding: 10px;
-        cursor: pointer;
         text-align: left;
-        color: #333;
-        font-size: 14px;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        color: #000;
+      }
+      body.dark-mode .chat-menu button {
+        color: #fff;
       }
       .chat-menu button:hover {
-        background: #f0f0f0;
+        background-color: #f0f0f0;
       }
-      #chat-area {
-        flex: 1;
+      body.dark-mode .chat-menu button:hover {
+        background-color: #444;
+      }
+      #main-chat-container {
+        flex-grow: 1;
         display: flex;
         flex-direction: column;
-        position: relative;
-        background: #f9f9f9;
+        background-color: #fff;
       }
-      body.dark-mode #chat-area {
-        background: #222;
+      body.dark-mode #main-chat-container {
+        background-color: #2a2a2a;
       }
       #chat-header {
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #4caf50;
-        color: white;
-      }
-      #chat-header button,
-      #chat-header input[type="file"] {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 25px;
-        background: #66bb6a;
-        color: white;
-        cursor: pointer;
-        font-size: 14px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-      }
-      .chatbot-profile {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .chatbot-profile span {
-        font-weight: bold;
-        font-size: 1.2rem;
-      }
-      #download-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-      #download-buttons button {
-        white-space: nowrap;
-      }
-      #search-container {
-        padding: 10px 15px;
+        padding: 20px;
+        background-color: #f0f2f5;
         border-bottom: 1px solid #ddd;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2em;
       }
-      #search-container input {
-        padding: 16px 20px;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        border: 1px solid #ddd;
-        outline: none;
-        width: calc(100% - 40px);
-        margin: 0 auto;
-        display: block;
+      body.dark-mode #chat-header {
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #444;
       }
       #messages {
-        flex: 1;
-        overflow-y: auto;
+        flex-grow: 1;
         padding: 20px;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
+      }
+      #input-container {
+        display: flex;
+        padding: 15px;
+        border-top: 1px solid #ddd;
+        background-color: #f0f2f5;
+        align-items: center;
+      }
+      body.dark-mode #input-container {
+        background-color: #1a1a1a;
+        border-top: 1px solid #444;
+      }
+      #input-container input {
+        flex-grow: 1;
+        padding: 12px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        outline: none;
+        font-size: 1em;
+        background-color: #fff;
+        color: #000;
+      }
+      body.dark-mode #input-container input {
+        background-color: #333;
+        border: 1px solid #555;
+        color: #fff;
+      }
+      #input-container button {
+        padding: 12px 20px;
+        border: none;
+        background-color: #4caf50;
+        color: #fff;
+        border-radius: 20px;
+        margin-left: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 1em;
+      }
+      #input-container button:hover {
+        background-color: #45a049;
       }
       .message-wrapper {
         display: flex;
         flex-direction: column;
-        animation: fadeIn 0.3s ease;
         position: relative;
       }
       .message {
-        padding: 16px 20px;
-        border-radius: 18px;
+        padding: 15px 20px;
+        border-radius: 20px;
         max-width: 70%;
+        line-height: 1.6;
         word-wrap: break-word;
-        line-height: 1.4;
-        position: relative;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
       }
       .message.user {
-        background: #dcf8c6;
+        background-color: #dcf8c6;
         align-self: flex-end;
         border-bottom-right-radius: 5px;
       }
+      body.dark-mode .message.user {
+        background-color: #005c4b;
+      }
       .message.bot {
-        background: #ffffff;
+        background-color: #e5e5ea;
         align-self: flex-start;
         border-bottom-left-radius: 5px;
       }
-      .message.pinned {
-        border: 2px solid gold;
+      body.dark-mode .message.bot {
+        background-color: #333;
+      }
+      .message.typing {
+        font-style: italic;
+        color: #666;
       }
       .message img {
         max-width: 100%;
-        height: auto;
-        border-radius: 8px;
+        border-radius: 10px;
       }
-      .msg-actions {
+      .message.pinned {
+        border-left: 3px solid gold;
+      }
+      .file-sent-banner {
+        font-size: 0.8em;
+        color: #999;
+        margin-bottom: 5px;
+      }
+      .msg-actions,
+      .edit-actions {
         display: flex;
-        gap: 6px;
-        margin-top: 4px;
+        gap: 5px;
+        margin-top: 5px;
+        opacity: 0;
+        transition: opacity 0.2s;
       }
-      .msg-actions button {
-        padding: 4px 8px;
-        font-size: 12px;
-        border: none;
-        border-radius: 8px;
+      .message-wrapper:hover .msg-actions,
+      .edit-actions {
+        opacity: 1;
+      }
+      .msg-actions button,
+      .edit-actions button {
+        background: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        border-radius: 5px;
         cursor: pointer;
-        background: #4caf50;
+        font-size: 0.8em;
+      }
+      body.dark-mode .msg-actions button,
+      body.dark-mode .edit-actions button {
+        background: #444;
+        border: 1px solid #666;
         color: #fff;
+      }
+      .edit-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        height: 100px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+      }
+      .highlight-message {
+        animation: highlight 2s ease-out forwards;
+      }
+      @keyframes highlight {
+        0% {
+          background-color: yellow;
+        }
+        100% {
+          background-color: initial;
+        }
       }
       .download-dropdown {
         position: relative;
@@ -277,728 +302,426 @@
         display: none;
         position: absolute;
         background-color: #f9f9f9;
-        min-width: 120px;
+        min-width: 100px;
         box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
         z-index: 1;
+        flex-direction: column;
         border-radius: 5px;
-        padding: 5px 0;
-        top: 100%;
-        left: 0;
+        padding: 5px;
+      }
+      body.dark-mode .download-dropdown-content {
+        background-color: #333;
       }
       .download-dropdown-content button {
-        color: black;
-        padding: 8px 16px;
-        text-decoration: none;
-        display: block;
-        background: none;
-        border: none;
         width: 100%;
-        text-align: left;
-        cursor: pointer;
-      }
-      .download-dropdown-content button:hover {
-        background-color: #f1f1f1;
-      }
-      .edit-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 5px;
-        justify-content: flex-end;
-      }
-      .edit-actions button {
-        padding: 6px 12px;
-        font-size: 14px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-      .edit-actions .save {
-        background: #4caf50;
-        color: white;
-      }
-      .edit-actions .cancel {
-        background: #f44336;
-        color: white;
-      }
-      .edit-textarea {
-        width: 100%;
-        padding: 10px;
-        border-radius: 12px;
-        border: 1px solid #ccc;
-        font-size: 1.1rem;
-        box-sizing: border-box;
-        resize: vertical;
-        min-height: 50px;
-      }
-      #file-info-bar {
-        background-color: #f0f8ff;
-        padding: 10px 20px;
-        border-top: 1px solid #ddd;
-        display: none;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 14px;
-        color: #333;
-      }
-      #file-info-bar button {
-        background: none;
-        border: none;
-        font-weight: bold;
-        color: #ff4d4d;
-        cursor: pointer;
-      }
-      .file-sent-banner {
-        background-color: #5d3fd3;
-        color: #fff;
-        padding: 6px 12px;
-        font-size: 16px;
-        border-radius: 6px;
-        margin-bottom: 5px;
-        align-self: flex-end;
-      }
-      #input-container {
-        display: flex;
-        padding: 20px;
-        gap: 8px;
-        border-top: 2px solid #4caf50;
-        background: #fff;
-        align-items: center;
-        position: relative;
-      }
-      body.dark-mode #input-container {
-        background: #333;
-        border-top: 2px solid #2e7d32;
-      }
-      #input-container input {
-        flex: 1;
-        padding: 16px 20px;
-        border-radius: 25px;
-        border: 1px solid #ddd;
-        outline: none;
-        font-size: 1.1rem;
-      }
-      #input-container button {
-        padding: 14px 24px;
-        border-radius: 25px;
-        border: none;
-        background: #4caf50;
-        color: white;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background 0.3s;
-        flex-shrink: 0;
-      }
-      #input-container button#add-btn {
-        background: none;
-        font-size: 2.5rem;
-        color: #4caf50;
-        padding: 0 10px;
-        font-weight: normal;
-        border: 2px solid #4caf50;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      #input-container button#add-btn:hover {
-        background: #e6e6e6;
-      }
-      #file-menu-dropdown {
-        position: absolute;
-        bottom: 70px;
-        left: 20px;
-        background-color: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        z-index: 10;
-        display: none;
-        flex-direction: column;
-        gap: 5px;
-        padding: 10px;
-      }
-      #file-menu-dropdown button {
-        background: #f0f0f0;
-        color: #333;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: normal;
-        width: 100%;
+        padding: 8px 10px;
         text-align: left;
       }
-      #file-menu-dropdown button:hover {
-        background: #e0e0e0;
-      }
-      #pinned-column {
-        width: 260px;
-        background: rgba(224, 255, 224, 0.8);
-        display: flex;
-        flex-direction: column;
-        padding: 12px;
-        gap: 10px;
-        overflow-y: auto;
-        border-left: 2px solid #4caf50;
-        display: none;
-      }
-      body.dark-mode #pinned-column {
-        background: #222;
-        border-left: 2px solid #2e7d32;
-      }
-      .pinned-btn {
-        padding: 10px;
-        border-radius: 18px;
-        background: #4caf50;
-        color: #fff;
-        cursor: pointer;
-        font-size: 14px;
-        text-align: left;
-      }
-      .pinned-btn:hover {
-        background: #66bb6a;
-      }
-      .divider {
-        border-top: 2px solid #4caf50;
-        margin: 10px 0;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .typing-indicator-wrapper {
-        display: flex;
-        align-self: flex-start;
-        flex-direction: column;
-        gap: 4px;
-        margin-top: 5px;
-      }
-      .typing-indicator {
-        display: flex;
-        gap: 4px;
-        margin-top: 5px;
-        padding: 16px 20px;
-        background-color: #e0e0e0;
-        border-radius: 18px;
-        max-width: 70%;
-        align-items: center;
-      }
-      .typing-indicator span {
-        width: 8px;
-        height: 8px;
-        background-color: #4caf50;
-        border-radius: 50%;
-        animation: pulse 1.5s infinite;
-      }
-      .typing-indicator span:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-      .typing-indicator span:nth-child(3) {
-        animation-delay: 0.4s;
-      }
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(0.8);
-          opacity: 0.5;
-        }
-        100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-      }
-      #ask-button {
-        position: absolute;
-        display: none;
-        padding: 8px 12px;
-        border-radius: 25px;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        z-index: 10;
-        transform: translateY(-50%);
-      }
-      .modal {
+      #map-modal {
         display: none;
         position: fixed;
-        z-index: 20;
+        z-index: 100;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
       }
-      .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
+      #map-modal-content {
+        background-color: #fff;
         padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
         border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        width: 80%;
+        height: 80%;
+        overflow: auto;
         position: relative;
       }
-      .modal-content.dark-mode {
-        background-color: #333;
+      body.dark-mode #map-modal-content {
+        background-color: #2a2a2a;
+      }
+      #close-map-modal {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #000;
+      }
+      body.dark-mode #close-map-modal {
         color: #fff;
       }
-      .close-button {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
+      .mermaid {
+        height: 100%;
+        width: 100%;
       }
-      .close-button:hover,
-      .close-button:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-      }
-      .modal-content.dark-mode .close-button:hover,
-      .modal-content.dark-mode .close-button:focus {
-        color: white;
-      }
-      #mermaid-container {
-        height: 400px;
-        display: flex;
+      #user-profile-modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
         justify-content: center;
         align-items: center;
-      }
-      #pinned-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-      #pinned-header h3 {
-        margin: 0;
-      }
-      .highlight-message {
-        animation: highlight 2s ease-in-out;
-      }
-      @keyframes highlight {
-        0% {
-          background-color: rgba(255, 255, 0, 0.5);
-        }
-        100% {
-          background-color: transparent;
-        }
       }
       #user-profile-modal-content {
-        text-align: left;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 500px;
+        width: 90%;
+        position: relative;
+        text-align: center;
       }
-      #user-profile-modal-content h3 {
-        color: #4caf50;
-        margin-top: 0;
+      body.dark-mode #user-profile-modal-content {
+        background-color: #2a2a2a;
       }
-      #user-profile-modal-content p {
-        font-size: 1.1em;
+      .profile-info p {
         margin: 10px 0;
       }
-      .modal-button-group {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        justify-content: center;
-        margin-top: 20px;
-      }
-      .modal-button-group button {
-        padding: 12px 20px;
-        border-radius: 18px;
-        background: #4caf50;
-        color: #fff;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
-        transition: background 0.3s;
-      }
-      .modal-button-group button:hover {
-        background: #66bb6a;
-      }
-      .hidden {
+      #file-info-bar {
         display: none;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #e0f7fa;
+        padding: 8px 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        color: #00796b;
+      }
+      #file-info-bar span {
+        font-weight: bold;
+      }
+      #file-info-bar button {
+        background: none;
+        border: none;
+        color: #d32f2f;
+        font-size: 1.2em;
+        cursor: pointer;
+      }
+      #add-btn,
+      #clear-chat-btn,
+      #map-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1.5em;
+        border: none;
+        margin-left: 10px;
+      }
+      #add-btn {
+        position: relative;
+      }
+      #file-menu-dropdown {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        flex-direction: column;
+        gap: 5px;
+        padding: 5px;
+        display: none;
+      }
+      #file-menu-dropdown button {
+        background-color: transparent;
+        color: #000;
+      }
+      #file-menu-dropdown button:hover {
+        background-color: #f0f0f0;
+      }
+      body.dark-mode #file-menu-dropdown {
+        background-color: #333;
+        border: 1px solid #555;
+      }
+      body.dark-mode #file-menu-dropdown button {
+        color: #fff;
+      }
+      #pinned-column {
+        width: 300px;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-left: 1px solid #ddd;
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        overflow-y: auto;
+      }
+      body.dark-mode #pinned-column {
+        background-color: #1a1a1a;
+        border-left: 1px solid #444;
+      }
+      #pinned-column h3 {
+        margin: 0;
+        font-size: 1.2em;
+        text-align: center;
+      }
+      #pinned-column select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+      }
+      body.dark-mode #pinned-column select {
+        background-color: #333;
+        color: #fff;
+        border: 1px solid #555;
+      }
+      .pinned-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .pinned-btn {
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #e9ecef;
+        border-left: 4px solid gold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.9em;
+        line-height: 1.4;
+      }
+      body.dark-mode .pinned-btn {
+        background-color: #444;
+      }
+      .pinned-btn:hover {
+        background-color: #dee2e6;
+      }
+      body.dark-mode .pinned-btn:hover {
+        background-color: #555;
       }
     </style>
   </head>
   <body>
-    <div id="login-form" class="form-container">
-      <h2>Bem-vindo!</h2>
-      <p>Por favor, entre ou crie sua conta.</p>
-      <input type="email" id="login-email" placeholder="Seu e-mail" required />
-      <input
-        type="password"
-        id="login-password"
-        placeholder="Sua senha"
-        required
-      />
-      <button onclick="handleLogin()">Entrar</button>
-      <div class="form-toggle" onclick="toggleForm('register')">
-        Não tem uma conta? Cadastre-se
-      </div>
-    </div>
-
-    <div id="register-form" class="form-container hidden">
-      <h2>Bem-vindo ao Genesis</h2>
-      <p>Preencha seus dados para continuar.</p>
-      <input
-        type="text"
-        id="register-username"
-        placeholder="Nome de usuário"
-        required
-      />
-      <input
-        type="email"
-        id="register-email"
-        placeholder="Seu e-mail"
-        required
-      />
-      <input
-        type="password"
-        id="register-password"
-        placeholder="Crie sua senha"
-        required
-      />
-      <input type="date" id="register-dob" required />
-      <button onclick="handleRegister()">Cadastrar</button>
-      <div class="form-toggle" onclick="toggleForm('login')">
-        Já tem uma conta? Entrar
-      </div>
-    </div>
-
-    <div id="chat-wrapper" class="hidden">
+    <div id="chat-wrapper">
       <div id="sidebar"></div>
-      <div id="chat-area">
-        <div id="chat-header">
-          <div class="chatbot-profile">
-            <span>Genesis</span>
-          </div>
-          <div>
-            <button onclick="clearCurrentChat()">
-              🗑 Apagar todas as mensagens desse chat
-            </button>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div id="search-container">
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Pesquisar no chat..."
-            oninput="searchMessages()"
-          />
-        </div>
-        <div class="divider"></div>
+
+      <div id="main-chat-container">
+        <div id="chat-header">Novo Chat</div>
         <div id="messages"></div>
-        <div class="divider"></div>
         <div id="file-info-bar">
-          <span>Documento: </span>
-          <span id="file-name"></span>
-          <button onclick="clearFileSelection()">x</button>
+          <span id="file-name-span"></span>
+          <button onclick="clearFileSelection()">✖</button>
         </div>
         <div id="input-container">
-          <div id="input-actions">
-            <button id="add-btn">+</button>
-            <input
-              type="file"
-              id="upload-file"
-              accept=".txt,.pdf,.doc,.docx"
-              onchange="handleFileUpload(event)"
-              style="display: none"
-            />
-          </div>
+          <button id="add-btn">+</button>
           <input
             type="text"
             id="user-input"
             placeholder="Digite sua mensagem..."
           />
           <button id="send-btn">Enviar</button>
-          <div id="file-menu-dropdown">
-            <button id="btn-pdf">PDF</button>
-            <button id="btn-word">Word</button>
-            <button id="btn-txt">TXT</button>
-          </div>
+          <button id="clear-chat-btn" onclick="clearCurrentChat()">
+            Limpar
+          </button>
+          <button id="map-btn">🌐</button>
         </div>
       </div>
+
       <div id="pinned-column">
-        <div id="pinned-header">
-          <h3>Fixados</h3>
-          <select id="pinned-filter" onchange="filterPinned()">
-            <option value="all">Todos</option>
-            <option value="bot">Chatbot</option>
-            <option value="user">Usuário</option>
-          </select>
-        </div>
-        <div id="pinned-list"></div>
+        <h3>Mensagens Fixadas</h3>
+        <select id="pinned-filter" onchange="filterPinned()">
+          <option value="all">Todos</option>
+          <option value="user">Usuário</option>
+          <option value="bot">IA</option>
+        </select>
+        <div id="pinned-list" class="pinned-list"></div>
       </div>
     </div>
-    <button id="ask-button">Perguntar ao Chat</button>
 
     <div id="map-modal" class="modal">
       <div id="map-modal-content" class="modal-content">
-        <span class="close-button" onclick="closeModal('map-modal')"
+        <span class="close" id="close-map-modal" onclick="closeModal('map-modal')"
           >&times;</span
         >
-        <h2>Mapa de Ideias</h2>
         <div id="mermaid-container"></div>
       </div>
     </div>
 
     <div id="user-profile-modal" class="modal">
       <div id="user-profile-modal-content" class="modal-content">
-        <span class="close-button" onclick="closeModal('user-profile-modal')"
+        <span
+          class="close"
+          id="close-user-profile-modal"
+          onclick="closeModal('user-profile-modal')"
           >&times;</span
         >
-        <h2>Perfil de Usuário</h2>
-        <div class="modal-button-group">
-          <button onclick="showUserData()">Ver Dados</button>
-          <button onclick="logout()">Sair da Conta</button>
-        </div>
-        <div id="user-info" class="hidden" style="margin-top: 20px">
-          <p><strong>Nome:</strong> <span id="profile-name"></span></p>
-          <p><strong>E-mail:</strong> <span id="profile-email"></span></p>
-          <p><strong>Senha:</strong> <span id="profile-password"></span></p>
+        <h2>👤 Seu Perfil</h2>
+        <div class="profile-info">
           <p>
-            <strong>Data de Nascimento:</strong> <span id="profile-dob"></span>
+            Esta é a tela de perfil do usuário. Aqui você poderia exibir
+            informações como nome, configurações e histórico.
+          </p>
+          <p>
+            *Esta é uma funcionalidade em desenvolvimento e pode ser expandida
+            futuramente.*
           </p>
         </div>
       </div>
     </div>
 
-    <script src="https://js.puter.com/v2/"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <input
+      type="file"
+      id="upload-file"
+      style="display: none"
+      onchange="handleFileUpload(event)"
+    />
+
     <script>
-      const messages = document.getElementById("messages");
+      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
+      const localStorageKey = "chatbotChats";
+
       const sidebar = document.getElementById("sidebar");
-      const pinnedColumn = document.getElementById("pinned-column");
-      const pinnedList = document.getElementById("pinned-list");
-      const pinnedFilter = document.getElementById("pinned-filter");
-      const searchInput = document.getElementById("search-input");
+      const messages = document.getElementById("messages");
       const userInput = document.getElementById("user-input");
-      const askButton = document.getElementById("ask-button");
+      const mapBtn = document.getElementById("map-btn");
       const mapModal = document.getElementById("map-modal");
       const mermaidContainer = document.getElementById("mermaid-container");
-      const modalContent = document.getElementById("map-modal-content");
-      const addBtn = document.getElementById("add-btn");
-      const uploadFile = document.getElementById("upload-file");
-      const fileMenuDropdown = document.getElementById("file-menu-dropdown");
-      const fileInfoBar = document.getElementById("file-info-bar");
-      const fileNameSpan = document.getElementById("file-name");
-
-      const loginForm = document.getElementById("login-form");
-      const registerForm = document.getElementById("register-form");
-      const chatWrapper = document.getElementById("chat-wrapper");
-
       const userProfileModal = document.getElementById("user-profile-modal");
-      const profileName = document.getElementById("profile-name");
-      const profileEmail = document.getElementById("profile-email");
-      const profilePassword = document.getElementById("profile-password");
-      const profileDob = document.getElementById("profile-dob");
-      const userInfoDiv = document.getElementById("user-info");
+      const uploadFile = document.getElementById("upload-file");
+      const fileInfoBar = document.getElementById("file-info-bar");
+      const fileNameSpan = document.getElementById("file-name-span");
+      const fileMenuDropdown = document.getElementById("file-menu-dropdown");
+      const pinnedColumn = document.getElementById("pinned-column");
+      const pinnedFilter = document.getElementById("pinned-filter");
+      const pinnedList = document.getElementById("pinned-list");
+      const clearChatBtn = document.getElementById("clear-chat-btn");
+      const searchInput = document.getElementById("search-input");
+      const modalContent = document.querySelector(".modal-content");
 
-      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
-
-      let chats = [],
-        currentChat = -1;
+      let chats = [];
+      let currentChat = -1;
       let uploadedFile = null;
-      let activeRequests = new Map();
       let isEditing = false;
       let originalMessageId = null;
-      let userData = null;
+      const activeRequests = new Map();
 
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "default",
-        securityLevel: "loose",
+      document.addEventListener("DOMContentLoaded", () => {
+        loadChats();
+        if (chats.length > 0) {
+          switchChat(0);
+        } else {
+          newChat();
+        }
       });
 
-      window.onload = function () {
-        const storedUser = localStorage.getItem("userData");
-        if (storedUser) {
-          userData = JSON.parse(storedUser);
-          startChatSession();
-        } else {
-          toggleForm("login");
+      mapBtn.onclick = async () => {
+        const botMessages = chats[currentChat].messages.filter(
+          (m) => m.sender === "bot" && m.text && !m.isImage && !m.isLinkList
+        );
+        if (botMessages.length === 0) {
+          alert("Não há mensagens de IA para mapear neste chat.");
+          return;
+        }
+        const lastBotMessage = botMessages[botMessages.length - 1];
+
+        const promptText = `Crie um mapa mental a partir do seguinte texto, no formato JSON. O JSON deve conter um array 'nodes' com os conceitos e um array 'links' com as conexões entre eles. As ligações devem ser uma tupla [origem, destino]. Exemplo: {"nodes": ["conceito A", "conceito B"], "links": [["conceito A", "conceito B"]]}. Mapeie apenas a mensagem mais recente da IA: "${lastBotMessage.text}"`;
+
+        const newId = Date.now();
+        addMessageToChat(
+          { text: "Gerando mapa mental...", sender: "bot" },
+          currentChat
+        );
+        chats[currentChat].isTyping = true;
+        renderCurrentChat();
+
+        try {
+          const response = await puter.ai.chat(promptText, {
+            model: "gpt-5-nano",
+          });
+          const messageToUpdate = chats[currentChat].messages.find(
+            (m) => m.id === newId
+          );
+          if (messageToUpdate) {
+            messageToUpdate.text = response;
+            showMapModal(response);
+          }
+        } catch (e) {
+          console.error("Erro ao gerar mapa mental:", e);
+          handleIncomingResponse(
+            "Não foi possível gerar o mapa. Por favor, tente novamente mais tarde.",
+            newId,
+            true
+          );
+        } finally {
+          chats[currentChat].isTyping = false;
+          renderCurrentChat();
+          saveChats();
         }
       };
 
-      function toggleForm(formId) {
-        loginForm.classList.add("hidden");
-        registerForm.classList.add("hidden");
-        document.getElementById(formId + "-form").classList.remove("hidden");
-      }
-
-      function handleLogin() {
-        const email = document.getElementById("login-email").value;
-        const password = document.getElementById("login-password").value;
-
-        const storedUser = localStorage.getItem("userData");
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          if (user.email === email && user.password === password) {
-            userData = user;
-            startChatSession();
-          } else {
-            alert("E-mail ou senha incorretos.");
-          }
-        } else {
-          alert("Nenhum usuário encontrado. Por favor, cadastre-se primeiro.");
-        }
-      }
-
-      function handleRegister() {
-        const username = document.getElementById("register-username").value;
-        const email = document.getElementById("register-email").value;
-        const password = document.getElementById("register-password").value;
-        const dob = document.getElementById("register-dob").value;
-
-        if (username && email && password && dob) {
-          userData = { username, email, password, dob };
-          localStorage.setItem("userData", JSON.stringify(userData));
-          startChatSession();
-        } else {
-          alert("Por favor, preencha todos os campos.");
-        }
-      }
-
-      function startChatSession() {
-        loginForm.classList.add("hidden");
-        registerForm.classList.add("hidden");
-        chatWrapper.classList.remove("hidden");
-        chatWrapper.style.display = "flex";
-        loadChats();
-      }
-
-      function showUserProfile() {
-        if (userData) {
-          userProfileModal.style.display = "block";
-          userInfoDiv.classList.add("hidden");
-        }
-      }
-
-      function showUserData() {
-        if (userData) {
-          profileName.textContent = userData.username;
-          profileEmail.textContent = userData.email;
-          profilePassword.textContent = "•".repeat(userData.password.length); // Esconde a senha
-          profileDob.textContent = userData.dob;
-          userInfoDiv.classList.remove("hidden");
-        }
-      }
-
-      function logout() {
-        if (confirm("Tem certeza que deseja sair da sua conta?")) {
-          localStorage.removeItem("userData");
-          userData = null;
-          chatWrapper.classList.add("hidden");
-          toggleForm("login");
-          closeModal("user-profile-modal");
-        }
-      }
-
       function saveChats() {
-        try {
-          localStorage.setItem("chats", JSON.stringify(chats));
-        } catch (e) {
-          console.error("Failed to save chats to localStorage.", e);
-        }
+        localStorage.setItem(localStorageKey, JSON.stringify(chats));
       }
 
       function loadChats() {
-        let storedChats;
-        try {
-          storedChats = JSON.parse(localStorage.getItem("chats"));
-          if (!storedChats || !Array.isArray(storedChats)) {
-            throw new Error("Invalid chat data in localStorage");
-          }
-        } catch (e) {
-          console.error(
-            "Failed to parse chats from localStorage, resetting data."
-          );
-          storedChats = null;
+        const storedChats = localStorage.getItem(localStorageKey);
+        if (storedChats) {
+          chats = JSON.parse(storedChats);
         }
-
-        if (storedChats && storedChats.length > 0) {
-          chats = storedChats;
-          currentChat = 0;
-        } else {
-          chats = [{ name: `Chat 1`, messages: [], isTyping: false }];
-          currentChat = 0;
-          saveChats();
-        }
-        renderSidebar();
-        renderCurrentChat();
       }
 
       function newChat() {
-        chats.push({
-          name: `Chat ${chats.length + 1}`,
-          messages: [],
-          isTyping: false,
-        });
+        chats.push({ name: `Chat ${chats.length + 1}`, messages: [] });
         currentChat = chats.length - 1;
         renderSidebar();
-        renderCurrentChat();
+        switchChat(currentChat);
         saveChats();
-      }
-
-      function clearAllChats() {
-        if (
-          confirm(
-            "Tem certeza que deseja apagar todos os chats e começar do zero?"
-          )
-        ) {
-          chats = [{ name: `Chat 1`, messages: [], isTyping: false }];
-          currentChat = 0;
-          saveChats();
-          renderSidebar();
-          renderCurrentChat();
-        }
       }
 
       function switchChat(index) {
-        if (index < 0 || index >= chats.length) return;
+        if (isEditing) return;
         currentChat = index;
         renderSidebar();
         renderCurrentChat();
-        saveChats();
       }
 
       function renderCurrentChat() {
         messages.innerHTML = "";
-        chats[currentChat].messages.forEach((m) => {
-          messages.appendChild(createMessageElement(m));
+        if (currentChat < 0) return;
+        const currentMessages = chats[currentChat].messages;
+        currentMessages.forEach((m) => {
+          const messageElement = createMessageElement(m);
+          messages.appendChild(messageElement);
         });
-
         if (chats[currentChat].isTyping) {
-          const typingWrapper = document.createElement("div");
-          typingWrapper.className = "typing-indicator-wrapper";
-
-          const typingIndicator = document.createElement("div");
-          typingIndicator.className = "typing-indicator";
-          typingIndicator.innerHTML = "<span></span><span></span><span></span>";
-          typingWrapper.appendChild(typingIndicator);
-
-          messages.appendChild(typingWrapper);
+          messages.innerHTML += `<div class="message bot typing">Digitando...</div>`;
         }
-
+        updateChatHeader();
         messages.scrollTop = messages.scrollHeight;
+      }
+
+      function updateChatHeader() {
+        document.getElementById("chat-header").innerText =
+          chats[currentChat].name;
+      }
+
+      function showUserProfile() {
+        userProfileModal.style.display = "flex";
+      }
+
+      function clearAllChats() {
+        if (confirm("Tem certeza de que deseja apagar TODOS os chats?")) {
+          chats = [];
+          newChat();
+          saveChats();
+          updatePinnedColumn();
+        }
       }
 
       function renameChat(index) {
