@@ -8,6 +8,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
       rel="stylesheet"
     />
+    <script src="https://js.puter.com/v2/"></script>
     <style>
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -724,333 +725,312 @@
         </div>
 
         <div id="input-container">
-          <div id="input-actions">
-            <button id="add-btn">+</button>
-            <input
-              type="file"
-              id="upload-file"
-              accept=".txt,.pdf,.doc,.docx"
-              onchange="handleFileUpload(event)"
-              style="display: none"
-            />
+          <div id="file-menu-dropdown">
+            <button id="btn-pdf">
+              <span class="icon">📄</span> PDF
+            </button>
+            <button id="btn-word">
+              <span class="icon">📝</span> Word
+            </button>
+            <button id="btn-txt">
+              <span class="icon">📃</span> Txt
+            </button>
+            <input type="file" id="upload-file" accept=".pdf,.doc,.docx,.txt" />
           </div>
+
+          <button id="add-btn">+</button>
           <input
             type="text"
             id="user-input"
             placeholder="Digite sua mensagem..."
+            required
           />
-          <button id="send-btn">Enviar</button>
-          <div id="file-menu-dropdown">
-            <button id="btn-pdf">PDF</button>
-            <button id="btn-word">Word</button>
-            <button id="btn-txt">TXT</button>
-          </div>
+          <button id="send-btn">
+            <span class="icon">🚀</span> Enviar
+          </button>
         </div>
       </div>
 
       <div id="pinned-column">
         <div id="pinned-header">
           <h3>Fixados</h3>
-          <select id="pinned-filter" onchange="filterPinned()">
+          <select id="pinned-filter">
             <option value="all">Todos</option>
-            <option value="bot">Chatbot</option>
             <option value="user">Usuário</option>
+            <option value="bot">Bot</option>
           </select>
         </div>
         <div id="pinned-list"></div>
       </div>
     </div>
 
-    <button id="ask-button">Perguntar ao Chat</button>
-
     <div id="map-modal" class="modal">
       <div id="map-modal-content" class="modal-content">
-        <span class="close-button" onclick="closeModal('map-modal')"
-          >&times;</span
-        >
-        <h2>Mapa de Ideias</h2>
+        <span class="close-button" onclick="closeMapModal()">&times;</span>
+        <h3>Mapa de Ideias</h3>
         <div id="mermaid-container"></div>
       </div>
     </div>
 
-    <div id="user-profile-modal" class="modal">
-      <div id="user-profile-modal-content" class="modal-content">
-        <span class="close-button" onclick="closeModal('user-profile-modal')"
-          >&times;</span
-        >
-        <h2>Perfil de Usuário</h2>
-        <div class="modal-button-group">
-          <button onclick="showUserData()">Ver Dados</button>
-          <button onclick="logout()">Sair da Conta</button>
-        </div>
-        <div id="user-info" class="hidden" style="margin-top: 20px">
-          <p><strong>Nome:</strong> <span id="profile-name"></span></p>
-          <p><strong>E-mail:</strong> <span id="profile-email"></span></p>
-          <p><strong>Senha:</strong> <span id="profile-password"></span></p>
-          <p>
-            <strong>Data de Nascimento:</strong> <span id="profile-dob"></span>
-          </p>
-        </div>
+    <div id="profile-modal" class="modal">
+      <div id="profile-modal-content" class="modal-content">
+        <span class="close-button" onclick="closeProfileModal()">&times;</span>
+        <h3>Meu Perfil</h3>
+        <p>
+          <strong
+            >Nome de Usuário:
+            <span id="profile-username"></span>
+          </strong>
+        </p>
+        <p>
+          <strong
+            >E-mail:
+            <span id="profile-email"></span>
+          </strong>
+        </p>
+        <p>
+          <strong
+            >Data de Nascimento:
+            <span id="profile-dob"></span>
+          </strong>
+        </p>
       </div>
     </div>
 
-    <script src="https://js.puter.com/v2/"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
     <script>
-      const messages = document.getElementById("messages");
+      let chats = {};
+      let currentChat = null;
+      let users = {};
+      let currentUser = null;
+      let fileToSend = null;
+      let isEditing = false;
+      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
+      const GEMINI_API_KEY = "AIzaSyDxg1mMOtLrHSkxiEolDlUfgV5WjmHuKQA";
+
+      // Elementos do DOM
+      const messagesContainer = document.getElementById("messages");
+      const userInput = document.getElementById("user-input");
       const sidebar = document.getElementById("sidebar");
-      const pinnedColumn = document.getElementById("pinned-column");
       const pinnedList = document.getElementById("pinned-list");
       const pinnedFilter = document.getElementById("pinned-filter");
-      const searchInput = document.getElementById("search-input");
-      const userInput = document.getElementById("user-input");
-      const askButton = document.getElementById("ask-button");
-      const mapModal = document.getElementById("map-modal");
-      const mermaidContainer = document.getElementById("mermaid-container");
-      const modalContent = document.getElementById("map-modal-content");
-      const addBtn = document.getElementById("add-btn");
-      const uploadFile = document.getElementById("upload-file");
-      const fileMenuDropdown = document.getElementById("file-menu-dropdown");
+      const pinnedColumn = document.getElementById("pinned-column");
       const fileInfoBar = document.getElementById("file-info-bar");
       const fileNameSpan = document.getElementById("file-name");
+      const uploadFile = document.getElementById("upload-file");
+      const mermaidContainer = document.getElementById("mermaid-container");
+      const mapModal = document.getElementById("map-modal");
+      const profileModal = document.getElementById("profile-modal");
+      const chatWrapper = document.getElementById("chat-wrapper");
       const loginForm = document.getElementById("login-form");
       const registerForm = document.getElementById("register-form");
-      const chatWrapper = document.getElementById("chat-wrapper");
-      const userProfileModal = document.getElementById("user-profile-modal");
-      const profileName = document.getElementById("profile-name");
+      const profileUsername = document.getElementById("profile-username");
       const profileEmail = document.getElementById("profile-email");
-      const profilePassword = document.getElementById("profile-password");
       const profileDob = document.getElementById("profile-dob");
-      const userInfoDiv = document.getElementById("user-info");
-      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
-      let chats = [],
-        currentChat = -1;
-      let uploadedFile = null;
-      let activeRequests = new Map();
-      let isEditing = false;
-      let originalMessageId = null;
-      let userData = null;
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "default",
-        securityLevel: "loose",
-      });
-      window.onload = function () {
-        const storedUser = localStorage.getItem("userData");
-        if (storedUser) {
-          userData = JSON.parse(storedUser);
-          startChatSession();
-        } else {
-          toggleForm("login");
+      const typingIndicatorElement = document.getElementById("typing-indicator");
+
+      // Funções de Autenticação e Armazenamento
+      function saveChats() {
+        if (currentUser) {
+          localStorage.setItem(
+            `chats_${currentUser.email}`,
+            JSON.stringify(chats)
+          );
         }
-      };
-      function toggleForm(formId) {
+      }
+
+      function loadChats() {
+        if (currentUser) {
+          const storedChats = localStorage.getItem(`chats_${currentUser.email}`);
+          chats = storedChats ? JSON.parse(storedChats) : {};
+        }
+      }
+
+      function saveUsers() {
+        localStorage.setItem("users", JSON.stringify(users));
+      }
+
+      function loadUsers() {
+        const storedUsers = localStorage.getItem("users");
+        users = storedUsers ? JSON.parse(storedUsers) : {};
+      }
+
+      function showLogin() {
+        loginForm.classList.remove("hidden");
+        registerForm.classList.add("hidden");
+        chatWrapper.classList.add("hidden");
+      }
+
+      function showChat() {
         loginForm.classList.add("hidden");
         registerForm.classList.add("hidden");
-        document.getElementById(formId + "-form").classList.remove("hidden");
+        chatWrapper.classList.remove("hidden");
+        loadChats();
+        renderSidebar();
       }
-      function handleLogin() {
-        const email = document.getElementById("login-email").value;
-        const password = document.getElementById("login-password").value;
-        const storedUser = localStorage.getItem("userData");
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          if (user.email === email && user.password === password) {
-            userData = user;
-            startChatSession();
-          } else {
-            alert("E-mail ou senha incorretos.");
-          }
+
+      function toggleForm(formId) {
+        if (formId === "register") {
+          loginForm.classList.add("hidden");
+          registerForm.classList.remove("hidden");
         } else {
-          alert("Nenhum usuário encontrado. Por favor, cadastre-se primeiro.");
+          loginForm.classList.remove("hidden");
+          registerForm.classList.add("hidden");
         }
       }
+
       function handleRegister() {
         const username = document.getElementById("register-username").value;
         const email = document.getElementById("register-email").value;
         const password = document.getElementById("register-password").value;
         const dob = document.getElementById("register-dob").value;
-        if (username && email && password && dob) {
-          userData = {
-            username,
-            email,
-            password,
-            dob
-          };
-          localStorage.setItem("userData", JSON.stringify(userData));
-          startChatSession();
-        } else {
-          alert("Por favor, preencha todos os campos.");
+
+        if (users[email]) {
+          alert("Este e-mail já está cadastrado.");
+          return;
         }
-      }
-      function startChatSession() {
-        loginForm.classList.add("hidden");
-        registerForm.classList.add("hidden");
-        chatWrapper.classList.remove("hidden");
-        chatWrapper.style.display = "flex";
-        loadChats();
-      }
-      function showUserProfile() {
-        if (userData) {
-          userProfileModal.style.display = "block";
-          userInfoDiv.classList.add("hidden");
-        }
-      }
-      function showUserData() {
-        if (userData) {
-          profileName.textContent = userData.username;
-          profileEmail.textContent = userData.email;
-          profilePassword.textContent = userData.password;
-          profileDob.textContent = userData.dob;
-          userInfoDiv.classList.remove("hidden");
-        }
-      }
-      function logout() {
-        localStorage.removeItem("userData");
-        userData = null;
-        chatWrapper.classList.add("hidden");
+
+        users[email] = { username, password, dob };
+        saveUsers();
+        alert("Cadastro realizado com sucesso!");
         toggleForm("login");
       }
-      function loadChats() {
-        const storedChats = localStorage.getItem("chats");
-        if (storedChats) {
-          chats = JSON.parse(storedChats);
+
+      function handleLogin() {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
+        const user = users[email];
+
+        if (user && user.password === password) {
+          currentUser = { email, username: user.username, dob: user.dob };
+          showChat();
         } else {
-          chats = [];
-        }
-        renderSidebar();
-        if (chats.length > 0) {
-          selectChat(0);
-        } else {
-          createNewChat();
+          alert("E-mail ou senha incorretos.");
         }
       }
-      function saveChats() {
-        localStorage.setItem("chats", JSON.stringify(chats));
-        renderSidebar();
+
+      function logout() {
+        currentUser = null;
+        chats = {};
+        currentChat = null;
+        showLogin();
       }
+
+      function showProfile() {
+        if (currentUser) {
+          profileUsername.textContent = currentUser.username;
+          profileEmail.textContent = currentUser.email;
+          profileDob.textContent = currentUser.dob;
+          profileModal.style.display = "block";
+        }
+      }
+
+      function closeProfileModal() {
+        profileModal.style.display = "none";
+      }
+
+      // Funções do Chat
+      function generateId() {
+        return Math.random().toString(36).substring(2, 9);
+      }
+
       function renderSidebar() {
         sidebar.innerHTML = "";
-        chats.forEach((chat, index) => {
-          const chatButton = document.createElement("div");
-          chatButton.className = `sidebar-btn${
-            index === currentChat ? " active" : ""
-          }`;
-          chatButton.innerHTML = `
-            <span class="chat-title">${
-              chat.title || "Nova Conversa"
-            }</span>
-            <div class="sidebar-btn-options">...</div>
-          `;
-          chatButton.onclick = (e) => {
-            if (!e.target.classList.contains("sidebar-btn-options")) {
-              selectChat(index);
-            }
-          };
-          const optionsMenu = document.createElement("div");
-          optionsMenu.className = "chat-menu";
-          optionsMenu.innerHTML = `
-            <button onclick="editChatName(${index})">✏️ Editar nome</button>
-            <button onclick="deleteChat(${index})">🗑️ Excluir</button>
-          `;
-          chatButton.querySelector(".sidebar-btn-options").onclick = (e) => {
-            e.stopPropagation();
-            optionsMenu.style.display =
-              optionsMenu.style.display === "flex" ? "none" : "flex";
-          };
-          sidebar.appendChild(chatButton);
-          chatButton.appendChild(optionsMenu);
-        });
         const newChatBtn = document.createElement("button");
-        newChatBtn.textContent = "➕ Nova Conversa";
+        newChatBtn.textContent = "+ Novo Chat";
         newChatBtn.className = "sidebar-btn";
-        newChatBtn.onclick = createNewChat;
+        newChatBtn.onclick = () => createNewChat();
         sidebar.appendChild(newChatBtn);
+
+        const chatIds = Object.keys(chats);
+        chatIds.forEach((chatId) => {
+          const chat = chats[chatId];
+          const btn = document.createElement("div");
+          btn.className = `sidebar-btn ${
+            currentChat === chatId ? "active" : ""
+          }`;
+          btn.onclick = () => switchChat(chatId);
+          btn.innerHTML = `
+            <span>${chat.name.substring(0, 20)}...</span>
+            <span class="sidebar-btn-options" onclick="event.stopPropagation(); toggleChatMenu('${chatId}', this)">...</span>
+            <div class="chat-menu" data-chat-id="${chatId}">
+              <button onclick="editChatName('${chatId}')">✏️ Editar</button>
+              <button onclick="deleteChat('${chatId}')">🗑️ Apagar</button>
+            </div>
+          `;
+          sidebar.appendChild(btn);
+        });
+
+        const profileBtn = document.createElement("button");
+        profileBtn.textContent = "👤 Perfil";
+        profileBtn.className = "sidebar-btn";
+        profileBtn.onclick = showProfile;
+        sidebar.appendChild(profileBtn);
+
+        const logoutBtn = document.createElement("button");
+        logoutBtn.textContent = "Sair";
+        logoutBtn.className = "sidebar-btn";
+        logoutBtn.onclick = logout;
+        sidebar.appendChild(logoutBtn);
       }
-      function selectChat(index) {
-        currentChat = index;
-        renderChat(chats[currentChat]);
-        renderSidebar();
-        updateAskButtonVisibility();
+
+      function toggleChatMenu(chatId, element) {
+        const menu = document.querySelector(`.chat-menu[data-chat-id="${chatId}"]`);
+        menu.style.display = menu.style.display === "flex" ? "none" : "flex";
       }
+
       function createNewChat() {
-        const newChat = {
-          title: "Nova Conversa",
+        const chatId = generateId();
+        chats[chatId] = {
+          name: "Novo Chat",
           messages: [],
           pinned: [],
+          files: [],
         };
-        chats.push(newChat);
-        currentChat = chats.length - 1;
         saveChats();
-        renderChat(newChat);
+        switchChat(chatId);
         renderSidebar();
-        updateAskButtonVisibility();
       }
-      function deleteChat(index) {
-        if (confirm("Tem certeza que deseja excluir esta conversa?")) {
-          chats.splice(index, 1);
-          saveChats();
-          if (chats.length === 0) {
-            createNewChat();
-          } else {
-            selectChat(0);
-          }
-        }
-      }
-      function editChatName(index) {
-        const newName = prompt("Digite o novo nome para a conversa:");
-        if (newName) {
-          chats[index].title = newName;
-          saveChats();
-        }
-      }
-      function renderChat(chat) {
-        messages.innerHTML = "";
-        chat.messages.forEach((msg) => {
-          appendMessage(msg.sender, msg.message, msg.id, msg.pinned);
-        });
-        messages.scrollTop = messages.scrollHeight;
+
+      function switchChat(chatId) {
+        currentChat = chatId;
+        renderChat(chats[currentChat]);
+        renderSidebar();
         renderPinnedMessages();
-        updateAskButtonVisibility();
       }
-      function clearCurrentChat() {
-        if (confirm("Tem certeza que deseja apagar todas as mensagens?")) {
-          chats[currentChat].messages = [];
-          chats[currentChat].pinned = [];
-          saveChats();
-          renderChat(chats[currentChat]);
-        }
+
+      function renderChat(chat) {
+        messagesContainer.innerHTML = "";
+        chat.messages.forEach((msg) => {
+          appendMessage(msg.sender, msg.message, msg.id, msg.pinned, msg.isImage);
+        });
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
-      function appendMessage(sender, message, id, pinned = false) {
+
+      function appendMessage(sender, message, id, pinned = false, isImage = false) {
         const msgWrapper = document.createElement("div");
         msgWrapper.className = `message-wrapper ${sender}`;
-        msgWrapper.setAttribute("data-id", id);
-        const msgDiv = document.createElement("div");
-        msgDiv.className = `message ${sender}${pinned ? " pinned" : ""}`;
-        const isImage = message.startsWith("<img>");
+        msgWrapper.dataset.id = id;
+
+        const msgElement = document.createElement("div");
+        msgElement.className = `message ${sender} ${pinned ? "pinned" : ""}`;
         if (isImage) {
-          const imgUrl = message.substring(5);
           const imgElement = document.createElement("img");
-          imgElement.src = imgUrl;
-          imgElement.alt = "Imagem solicitada";
-          msgDiv.appendChild(imgElement);
+          imgElement.src = message;
+          imgElement.alt = "Imagem gerada";
+          msgElement.appendChild(imgElement);
         } else {
-          const lines = message.split("\n");
-          lines.forEach((line) => {
-            const p = document.createElement("p");
-            p.textContent = line;
-            msgDiv.appendChild(p);
-          });
+          msgElement.innerHTML = `<p>${message}</p>`;
         }
-        msgWrapper.appendChild(msgDiv);
+        msgWrapper.appendChild(msgElement);
+
         if (sender === "bot") {
           const actionsContainer = document.createElement("div");
           actionsContainer.className = "msg-actions";
           actionsContainer.innerHTML = `
             <button onclick="pinMessage('${id}')">${
-              pinned ? "📌 Desafixar" : "📌 Fixar"
-            }</button>
+            pinned ? "📌 Desafixar" : "📌 Fixar"
+          }</button>
             <button onclick="editMessage('${id}')">✏️ Editar</button>
             <button onclick="copyText('${id}')">📋 Copiar</button>
             <button onclick="downloadChat()">Download</button>
@@ -1058,85 +1038,102 @@
           `;
           msgWrapper.appendChild(actionsContainer);
         }
-        messages.appendChild(msgWrapper);
-        messages.scrollTop = messages.scrollHeight;
+
+        messagesContainer.appendChild(msgWrapper);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
+
       function showTypingIndicator() {
-        let typingIndicator = document.getElementById("typing-indicator");
-        if (!typingIndicator) {
-          const typingWrapper = document.createElement("div");
-          typingWrapper.className = "typing-indicator-wrapper";
-          typingWrapper.id = "typing-indicator-wrapper";
-          typingWrapper.innerHTML = `
-            <div class="message bot typing-indicator">
-              <span></span><span></span><span></span>
-            </div>
-          `;
-          messages.appendChild(typingWrapper);
-          messages.scrollTop = messages.scrollHeight;
-        }
+        const typingIndicatorWrapper = document.createElement("div");
+        typingIndicatorWrapper.id = "typing-indicator";
+        typingIndicatorWrapper.className = "typing-indicator-wrapper";
+        typingIndicatorWrapper.innerHTML = `
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        `;
+        messagesContainer.appendChild(typingIndicatorWrapper);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
+
       function hideTypingIndicator() {
-        const typingWrapper = document.getElementById("typing-indicator-wrapper");
-        if (typingWrapper) {
-          typingWrapper.remove();
+        const indicator = document.getElementById("typing-indicator");
+        if (indicator) {
+          indicator.remove();
         }
       }
+
       async function sendMessage() {
         const userMessage = userInput.value.trim();
-        if (userMessage === "") return;
-        addMessage("user", userMessage);
+        if (userMessage === "" && !fileToSend) return;
+
+        addMessage("user", userMessage, false, fileToSend);
         userInput.value = "";
+        hideFileToSend();
         showTypingIndicator();
-        let puterModel;
+
+        let botResponse = "";
+        let isImageRequest = false;
+
         try {
-          puterModel = puter.ai.GenerativeModel({
+          const model = puter.ai.GenerativeModel({
+            apiKey: GEMINI_API_KEY,
             model: "gemini-1.5-flash",
           });
-        } catch (e) {
-          console.error("Erro ao inicializar o modelo:", e);
-          const errorMessage =
-            "Desculpe, não consegui iniciar o modelo de IA. Tente novamente mais tarde.";
-          addMessage("bot", errorMessage);
-          hideTypingIndicator();
-          return;
-        }
-        const isImageRequest =
-          userMessage.toLowerCase().includes("foto") ||
-          userMessage.toLowerCase().includes("imagem");
-        if (isImageRequest) {
-          let imageSearchTerm = userMessage
-            .toLowerCase()
-            .replace(/^(quero uma\s+)?(foto|imagem)\s+(de\s+)?/, "")
-            .trim();
-          await searchAndDisplayImage(imageSearchTerm);
-        } else {
-          try {
-            const result = await puterModel.generateContent({
-              contents: [{
-                role: "user",
-                parts: [{
-                  text: userMessage
-                }],
-              }],
+
+          isImageRequest =
+            userMessage.toLowerCase().includes("foto") ||
+            userMessage.toLowerCase().includes("imagem");
+
+          if (isImageRequest) {
+            const imageSearchTerm = userMessage
+              .toLowerCase()
+              .replace(/^(quero uma\s+)?(foto|imagem)\s+(de\s+)?/, "")
+              .trim();
+            botResponse = await searchAndDisplayImage(imageSearchTerm);
+          } else {
+            const result = await model.generateContent({
+              contents: [{ role: "user", parts: [{ text: userMessage }] }],
             });
-            if (result.response && result.response.candidates.length > 0) {
-              const botResponseText =
-                result.response.candidates[0].content.parts[0].text;
-              addMessage("bot", botResponseText);
+
+            if (result && result.response && result.response.candidates.length > 0) {
+              botResponse = result.response.candidates[0].content.parts[0].text;
             } else {
               throw new Error("Resposta vazia do modelo.");
             }
-          } catch (e) {
-            console.error("Erro ao gerar conteúdo:", e);
-            const errorMessage =
-              "Desculpe, não consegui gerar uma resposta. Tente novamente mais tarde.";
-            addMessage("bot", errorMessage);
-          } finally {
-            hideTypingIndicator();
+          }
+        } catch (error) {
+          console.error("Erro ao gerar conteúdo:", error);
+          botResponse =
+            "Desculpe, não consegui iniciar o modelo de IA. Tente novamente mais tarde.";
+        } finally {
+          hideTypingIndicator();
+          if (isImageRequest && botResponse.startsWith("http")) {
+            addMessage("bot", botResponse, true, false);
+          } else {
+            addMessage("bot", botResponse);
           }
         }
       }
+
+      function addMessage(sender, message, isImage = false, file = null) {
+        if (!currentChat) {
+          createNewChat();
+        }
+        const msgId = generateId();
+        const chat = chats[currentChat];
+        chat.messages.push({
+          id: msgId,
+          sender: sender,
+          message: message,
+          pinned: false,
+          isImage: isImage,
+          file: file,
+        });
+        saveChats();
+        appendMessage(sender, message, msgId, false, isImage);
+      }
+
       async function searchAndDisplayImage(searchTerm) {
         try {
           const encodedSearchTerm = encodeURIComponent(searchTerm);
@@ -1144,32 +1141,16 @@
           const response = await fetch(url);
           const data = await response.json();
           if (data.data && data.data.images) {
-            const imageUrl = data.data.images.original.url;
-            addMessage("bot", `<img>${imageUrl}`);
+            return data.data.images.original.url;
           } else {
-            const noImageMsg = `Desculpe, não encontrei nenhuma imagem para "${searchTerm}".`;
-            addMessage("bot", noImageMsg);
+            return "Desculpe, não encontrei nenhuma imagem para " + searchTerm + ".";
           }
         } catch (error) {
           console.error("Erro ao buscar a imagem:", error);
-          const errorMsg =
-            "Ocorreu um erro ao carregar a imagem. Tente novamente mais tarde.";
-          addMessage("bot", errorMsg);
-        } finally {
-          hideTypingIndicator();
+          return "Ocorreu um erro ao carregar a imagem.";
         }
       }
-      function addMessage(sender, message) {
-        const id = Date.now().toString();
-        const msg = {
-          id,
-          sender,
-          message
-        };
-        chats[currentChat].messages.push(msg);
-        saveChats();
-        appendMessage(sender, message, id);
-      }
+
       function pinMessage(id) {
         const chat = chats[currentChat];
         const messageIndex = chat.messages.findIndex((msg) => msg.id === id);
@@ -1189,7 +1170,9 @@
         }
         saveChats();
         renderChat(chat);
+        renderPinnedMessages();
       }
+
       function renderPinnedMessages() {
         pinnedList.innerHTML = "";
         const pinned = chats[currentChat].pinned;
@@ -1205,149 +1188,205 @@
         });
         pinnedColumn.style.display = pinned.length > 0 ? "flex" : "none";
       }
-      function filterPinned() {
-        renderPinnedMessages();
-      }
+
       function scrollToMessage(id) {
-        const msgElement = document.querySelector(`[data-id="${id}"]`);
-        if (msgElement) {
-          messages.scrollTop = msgElement.offsetTop - messages.offsetTop;
-          msgElement.classList.add("highlight-message");
+        const messageElement = document.querySelector(
+          `.message-wrapper[data-id="${id}"] .message`
+        );
+        if (messageElement) {
+          messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          messageElement.classList.add("highlight-message");
           setTimeout(() => {
-            msgElement.classList.remove("highlight-message");
+            messageElement.classList.remove("highlight-message");
           }, 2000);
         }
       }
-      function searchMessages() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const allMessages = document.querySelectorAll(".message-wrapper");
-        allMessages.forEach((msg) => {
-          const text = msg.textContent.toLowerCase();
-          if (text.includes(searchTerm) || searchTerm === "") {
-            msg.style.display = "flex";
-          } else {
-            msg.style.display = "none";
-          }
-        });
-      }
-      function updateAskButtonVisibility() {
-        if (chats[currentChat].messages.length > 0) {
-          askButton.style.display = "none";
-        } else {
-          askButton.style.display = "block";
-        }
-      }
-      function generateMap() {
-        const messages = chats[currentChat].messages.map((msg) =>
-          msg.message.replace(/"/g, "'")
-        );
-        const mermaidSyntax = `
-graph TD
-    A[Início]
-    ${messages
-      .map(
-        (msg, index) =>
-          `A --> C${index}[${msg.substring(0, 50)}...]`
-      )
-      .join("\n    ")}
-`;
-        mermaidContainer.innerHTML = mermaidSyntax;
-        mapModal.style.display = "block";
-        mermaid.init();
-      }
-      function closeModal(modalId) {
-        document.getElementById(modalId).style.display = "none";
-      }
-      function downloadChat() {
-        const doc = new jspdf.jsPDF();
-        let y = 10;
-        const chat = chats[currentChat];
-        doc.text(`Conversa: ${chat.title}`, 10, y);
-        y += 10;
-        doc.line(10, y, 200, y);
-        y += 10;
-        chat.messages.forEach((msg) => {
-          const lines = doc.splitTextToSize(`${msg.sender}: ${msg.message}`, 180);
-          doc.text(lines, 10, y);
-          y += lines.length * 10;
-          if (y > 280) {
-            doc.addPage();
-            y = 10;
-          }
-        });
-        doc.save(`chat-${chat.title}.pdf`);
-      }
-      function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-          uploadedFile = file;
-          fileNameSpan.textContent = file.name;
-          fileInfoBar.style.display = "flex";
-        }
-      }
-      function clearFileSelection() {
-        uploadedFile = null;
-        fileNameSpan.textContent = "";
-        fileInfoBar.style.display = "none";
-      }
+
       function editMessage(id) {
+        if (isEditing) return;
         isEditing = true;
-        originalMessageId = id;
-        const msgDiv = document.querySelector(`[data-id="${id}"] .message`);
-        const originalText = msgDiv.innerText;
-        const editInput = document.createElement("textarea");
-        editInput.value = originalText;
-        editInput.className = "edit-textarea";
-        msgDiv.innerHTML = "";
-        msgDiv.appendChild(editInput);
+
+        const chat = chats[currentChat];
+        const message = chat.messages.find((msg) => msg.id === id);
+        if (!message) return;
+
+        const messageElement = document.querySelector(
+          `.message-wrapper[data-id="${id}"] .message`
+        );
+        const originalContent = message.message;
+
+        messageElement.innerHTML = `
+        <textarea class="edit-textarea">${originalContent}</textarea>
+        <div class="edit-actions">
+          <button class="save" onclick="saveEdit('${id}')">Salvar</button>
+          <button class="cancel" onclick="cancelEdit('${id}', '${originalContent}')">Cancelar</button>
+        </div>
+      `;
         const actionsContainer = document.querySelector(
           `.message-wrapper[data-id="${id}"] .msg-actions`
         );
         actionsContainer.style.display = "none";
-        const editActions = document.createElement("div");
-        editActions.className = "edit-actions";
-        editActions.innerHTML = `
-          <button class="save" onclick="saveEdit()">Salvar</button>
-          <button class="cancel" onclick="cancelEdit()">Cancelar</button>
-        `;
-        document
-          .querySelector(`.message-wrapper[data-id="${id}"]`)
-          .appendChild(editActions);
       }
-      function saveEdit() {
-        const newText = document.querySelector(
-          `[data-id="${originalMessageId}"] .edit-textarea`
-        ).value;
-        const msgIndex = chats[currentChat].messages.findIndex(
-          (msg) => msg.id === originalMessageId
+
+      function saveEdit(id) {
+        const chat = chats[currentChat];
+        const message = chat.messages.find((msg) => msg.id === id);
+        if (!message) return;
+
+        const textarea = document.querySelector(
+          `.message-wrapper[data-id="${id}"] .edit-textarea`
         );
-        if (msgIndex !== -1) {
-          chats[currentChat].messages[msgIndex].message = newText;
-          saveChats();
-          renderChat(chats[currentChat]);
-        }
-        isEditing = false;
-        originalMessageId = null;
+        const newContent = textarea.value;
+        message.message = newContent;
+        saveChats();
+        renderCurrentChat();
       }
-      function cancelEdit() {
-        const editActions = document.querySelector(
-          `[data-id="${originalMessageId}"] .edit-actions`
+
+      function cancelEdit(id, originalContent) {
+        const messageElement = document.querySelector(
+          `.message-wrapper[data-id=\"${id}\"] .message`
         );
-        editActions.remove();
+        messageElement.innerHTML = `<p>${originalContent}</p>`;
         const actionsContainer = document.querySelector(
-          `.message-wrapper[data-id="${originalMessageId}"] .msg-actions`
+          `.message-wrapper[data-id="${id}"] .msg-actions`
         );
         actionsContainer.style.display = "flex";
         isEditing = false;
-        renderCurrentChat();
       }
+
       function copyText(id) {
-        const msg = chats[currentChat].messages.find((m) => m.id === id);
-        if (msg) {
-          navigator.clipboard.writeText(msg.message);
-          alert("Mensagem copiada!");
+        const message = chats[currentChat].messages.find((msg) => msg.id === id);
+        if (message) {
+          navigator.clipboard
+            .writeText(message.message)
+            .then(() => alert("Mensagem copiada!"))
+            .catch((err) => console.error("Erro ao copiar:", err));
         }
       }
+
+      function downloadChat() {
+        const chat = chats[currentChat];
+        const content = chat.messages
+          .map((msg) => `${msg.sender}: ${msg.message}`)
+          .join("\n\n");
+        const blob = new Blob([content], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `${chat.name}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      function generateMap() {
+        if (!mermaid) {
+          alert("Biblioteca Mermaid não carregada.");
+          return;
+        }
+        const chat = chats[currentChat];
+        let mermaidCode = "graph TD\n";
+        chat.messages.forEach((msg, index) => {
+          if (msg.sender === "user") {
+            mermaidCode += `    id${index}[${msg.message}]\n`;
+          } else {
+            mermaidCode += `    id${index}[Bot: ${msg.message}]\n`;
+          }
+          if (index > 0) {
+            mermaidCode += `    id${index - 1} --> id${index}\n`;
+          }
+        });
+        mermaidContainer.innerHTML = mermaidCode;
+        mermaid.init(undefined, mermaidContainer);
+        mapModal.style.display = "block";
+      }
+
+      function closeMapModal() {
+        mapModal.style.display = "none";
+      }
+
+      function uploadFileChange(event) {
+        const file = event.target.files[0];
+        if (file) {
+          fileToSend = file;
+          fileNameSpan.textContent = file.name;
+          fileInfoBar.style.display = "flex";
+        }
+      }
+
+      function clearFileSelection() {
+        fileToSend = null;
+        uploadFile.value = "";
+        fileInfoBar.style.display = "none";
+      }
+
+      function clearCurrentChat() {
+        if (currentChat && chats[currentChat]) {
+          chats[currentChat].messages = [];
+          chats[currentChat].pinned = [];
+          saveChats();
+          renderChat(chats[currentChat]);
+          renderPinnedMessages();
+        }
+      }
+
+      function deleteChat(chatId) {
+        if (confirm("Tem certeza de que deseja apagar este chat?")) {
+          delete chats[chatId];
+          saveChats();
+          if (currentChat === chatId) {
+            currentChat = null;
+            messagesContainer.innerHTML = "";
+            pinnedColumn.style.display = "none";
+          }
+          renderSidebar();
+          if (!currentChat && Object.keys(chats).length > 0) {
+            switchChat(Object.keys(chats)[0]);
+          }
+        }
+      }
+
+      function editChatName(chatId) {
+        const newName = prompt("Digite o novo nome para o chat:");
+        if (newName && newName.trim() !== "") {
+          chats[chatId].name = newName;
+          saveChats();
+          renderSidebar();
+        }
+      }
+
+      function renderCurrentChat() {
+        if (currentChat) {
+          renderChat(chats[currentChat]);
+          renderPinnedMessages();
+        } else {
+          messagesContainer.innerHTML = "";
+          pinnedColumn.style.display = "none";
+        }
+      }
+
+      function searchMessages() {
+        const searchTerm = document.getElementById("search-input").value.toLowerCase();
+        const chat = chats[currentChat];
+        if (!chat || searchTerm.trim() === "") {
+          renderChat(chat);
+          return;
+        }
+
+        messagesContainer.innerHTML = "";
+        const filteredMessages = chat.messages.filter(
+          (msg) => msg.message.toLowerCase().includes(searchTerm)
+        );
+
+        if (filteredMessages.length > 0) {
+          filteredMessages.forEach((msg) =>
+            appendMessage(msg.sender, msg.message, msg.id, msg.pinned, msg.isImage)
+          );
+        } else {
+          messagesContainer.innerHTML = "<p>Nenhum resultado encontrado.</p>";
+        }
+      }
+
+      // Event Listeners
       userInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
           sendMessage();
@@ -1364,18 +1403,24 @@ graph TD
       document.getElementById("btn-pdf").onclick = () => uploadFile.click();
       document.getElementById("btn-word").onclick = () => uploadFile.click();
       document.getElementById("btn-txt").onclick = () => uploadFile.click();
+      uploadFile.addEventListener("change", uploadFileChange);
+      pinnedFilter.addEventListener("change", renderPinnedMessages);
+
       const themeToggleBtn = document.createElement("button");
       themeToggleBtn.innerText = "🌙";
       themeToggleBtn.style.cssText =
-        "position: fixed; bottom: 20px; right: 20px; font-size: 24px; background: #fff; border-radius: 50%; width: 50px; height: 50px; border: 2px solid #ccc; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1);";
-      themeToggleBtn.onclick = () => {
-        document.body.classList.toggle("dark-mode");
-        document.getElementById("map-modal-content").classList.toggle("dark-mode");
-        document
-          .getElementById("user-profile-modal-content")
-          .classList.toggle("dark-mode");
-      };
+        "position: fixed; bottom: 20px; right: 20px; font-size: 24px; background: #fff; border-radius: 50%; width: 50px; height: 50px; border: 2px solid #ccc; cursor: pointer; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);";
+      themeToggleBtn.onclick = () => document.body.classList.toggle("dark-mode");
       document.body.appendChild(themeToggleBtn);
+
+      // Início do App
+      loadUsers();
+      if (localStorage.getItem("currentUser")) {
+        currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        showChat();
+      } else {
+        showLogin();
+      }
     </script>
   </body>
 </html>
