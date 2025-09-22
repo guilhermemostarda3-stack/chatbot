@@ -3,13 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChatBot Completo</title>
+    <title>Genesis</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -25,11 +23,63 @@
         background: linear-gradient(135deg, #1a1a1a, #333);
         color: #fff;
       }
+      .form-container {
+        background: #fff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        border: 5px solid #4caf50;
+        text-align: center;
+      }
+      body.dark-mode .form-container {
+        background: #1e1e1e;
+        border: 5px solid #2e7d32;
+      }
+      .form-container h2 {
+        color: #4caf50;
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+      .form-container p {
+        color: #555;
+      }
+      .form-container input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 15px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .form-container button {
+        padding: 15px;
+        border-radius: 15px;
+        border: none;
+        background: #4caf50;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      .form-container button:hover {
+        background: #66bb6a;
+      }
+      .form-toggle {
+        font-size: 0.9em;
+        color: #007bff;
+        cursor: pointer;
+        margin-top: 10px;
+      }
       #chat-wrapper {
         width: 1200px;
-        height: 800px;
+        height: 650px;
         margin: 20px auto;
-        display: flex;
+        display: none;
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -37,262 +87,187 @@
         border: 5px solid #4caf50;
       }
       body.dark-mode #chat-wrapper {
-        background: #2a2a2a;
-        border: 5px solid #66bb6a;
+        background: #1e1e1e;
+        border: 5px solid #2e7d32;
       }
       #sidebar {
-        width: 280px;
-        background-color: #f0f2f5;
-        padding: 20px;
-        border-right: 1px solid #ddd;
+        width: 260px;
+        background: rgba(224, 255, 224, 0.8);
         display: flex;
         flex-direction: column;
+        padding: 12px;
         gap: 10px;
         overflow-y: auto;
+        border-right: 2px solid #4caf50;
       }
       body.dark-mode #sidebar {
-        background-color: #1a1a1a;
-        border-right: 1px solid #444;
+        background: #222;
+        border-right: 2px solid #2e7d32;
       }
       .sidebar-btn {
         padding: 12px;
-        border-radius: 10px;
-        text-align: left;
+        border-radius: 18px;
+        background: #ccc;
         cursor: pointer;
-        background-color: #e2e4e7;
-        color: #333;
-        font-weight: 500;
-        transition: background-color 0.2s, transform 0.2s;
+        font-size: 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        transition: background 0.3s;
         position: relative;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      body.dark-mode .sidebar-btn {
-        background-color: #333;
-        color: #ddd;
-      }
-      .sidebar-btn:hover {
-        background-color: #d1d4d8;
-        transform: translateY(-2px);
-      }
-      body.dark-mode .sidebar-btn:hover {
-        background-color: #444;
       }
       .sidebar-btn.active {
-        background-color: #d1d4d8;
-        border-left: 4px solid #4caf50;
-        padding-left: 8px;
+        background: #4caf50;
+        color: #fff;
         font-weight: bold;
+        border: 2px solid #2e7d32;
       }
-      body.dark-mode .sidebar-btn.active {
-        background-color: #444;
-        border-left: 4px solid #66bb6a;
+      .sidebar-btn:hover {
+        background: #66bb6a;
       }
       .sidebar-btn-options {
-        font-weight: bold;
-        font-size: 1.2em;
         cursor: pointer;
+        font-weight: bold;
         padding: 0 5px;
       }
       .chat-menu {
         position: absolute;
-        top: 100%;
-        right: 0;
+        top: 40px;
+        right: 10px;
         background: #fff;
         border: 1px solid #ccc;
-        border-radius: 5px;
-        flex-direction: column;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         z-index: 10;
         display: none;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        min-width: 120px;
-      }
-      body.dark-mode .chat-menu {
-        background: #333;
-        border: 1px solid #555;
+        flex-direction: column;
       }
       .chat-menu button {
         background: none;
         border: none;
         padding: 10px;
-        text-align: left;
-        width: 100%;
         cursor: pointer;
-        transition: background-color 0.2s;
-        color: #000;
-      }
-      body.dark-mode .chat-menu button {
-        color: #fff;
+        text-align: left;
+        color: #333;
+        font-size: 14px;
       }
       .chat-menu button:hover {
-        background-color: #f0f0f0;
+        background: #f0f0f0;
       }
-      body.dark-mode .chat-menu button:hover {
-        background-color: #444;
-      }
-      #main-chat-container {
-        flex-grow: 1;
+      #chat-area {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        background-color: #fff;
+        position: relative;
+        background: #f9f9f9;
       }
-      body.dark-mode #main-chat-container {
-        background-color: #2a2a2a;
+      body.dark-mode #chat-area {
+        background: #222;
       }
       #chat-header {
-        padding: 20px;
-        background-color: #f0f2f5;
-        border-bottom: 1px solid #ddd;
-        text-align: center;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #4caf50;
+        color: white;
+      }
+      #chat-header button,
+      #chat-header input[type="file"] {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 25px;
+        background: #66bb6a;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .chatbot-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .chatbot-profile span {
         font-weight: bold;
-        font-size: 1.2em;
+        font-size: 1.2rem;
       }
-      body.dark-mode #chat-header {
-        background-color: #1a1a1a;
-        border-bottom: 1px solid #444;
-      }
-      #messages {
-        flex-grow: 1;
-        padding: 20px;
-        overflow-y: auto;
+      #download-buttons {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 5px;
       }
-      #input-container {
-        display: flex;
-        padding: 15px;
-        border-top: 1px solid #ddd;
-        background-color: #f0f2f5;
-        align-items: center;
+      #download-buttons button {
+        white-space: nowrap;
       }
-      body.dark-mode #input-container {
-        background-color: #1a1a1a;
-        border-top: 1px solid #444;
+      #search-container {
+        padding: 10px 15px;
+        border-bottom: 1px solid #ddd;
       }
-      #input-container input {
-        flex-grow: 1;
-        padding: 12px;
-        border-radius: 20px;
-        border: 1px solid #ccc;
+      #search-container input {
+        padding: 16px 20px;
+        font-size: 1.1rem;
+        border-radius: 25px;
+        border: 1px solid #ddd;
         outline: none;
-        font-size: 1em;
-        background-color: #fff;
-        color: #000;
+        width: calc(100% - 40px);
+        margin: 0 auto;
+        display: block;
       }
-      body.dark-mode #input-container input {
-        background-color: #333;
-        border: 1px solid #555;
-        color: #fff;
-      }
-      #input-container button {
-        padding: 12px 20px;
-        border: none;
-        background-color: #4caf50;
-        color: #fff;
-        border-radius: 20px;
-        margin-left: 10px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        font-size: 1em;
-      }
-      #input-container button:hover {
-        background-color: #45a049;
+      #messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
       .message-wrapper {
         display: flex;
         flex-direction: column;
+        animation: fadeIn 0.3s ease;
         position: relative;
       }
       .message {
-        padding: 15px 20px;
-        border-radius: 20px;
+        padding: 16px 20px;
+        border-radius: 18px;
         max-width: 70%;
-        line-height: 1.6;
         word-wrap: break-word;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        line-height: 1.4;
+        position: relative;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
       .message.user {
-        background-color: #dcf8c6;
+        background: #dcf8c6;
         align-self: flex-end;
         border-bottom-right-radius: 5px;
       }
-      body.dark-mode .message.user {
-        background-color: #005c4b;
-      }
       .message.bot {
-        background-color: #e5e5ea;
+        background: #ffffff;
         align-self: flex-start;
         border-bottom-left-radius: 5px;
       }
-      body.dark-mode .message.bot {
-        background-color: #333;
-      }
-      .message.typing {
-        font-style: italic;
-        color: #666;
+      .message.pinned {
+        border: 2px solid gold;
       }
       .message img {
         max-width: 100%;
-        border-radius: 10px;
+        height: auto;
+        border-radius: 8px;
       }
-      .message.pinned {
-        border-left: 3px solid gold;
-      }
-      .file-sent-banner {
-        font-size: 0.8em;
-        color: #999;
-        margin-bottom: 5px;
-      }
-      .msg-actions,
-      .edit-actions {
+      .msg-actions {
         display: flex;
-        gap: 5px;
-        margin-top: 5px;
-        opacity: 0;
-        transition: opacity 0.2s;
+        gap: 6px;
+        margin-top: 4px;
       }
-      .message-wrapper:hover .msg-actions,
-      .edit-actions {
-        opacity: 1;
-      }
-      .msg-actions button,
-      .edit-actions button {
-        background: #f0f0f0;
-        border: 1px solid #ccc;
-        padding: 5px 10px;
-        border-radius: 5px;
+      .msg-actions button {
+        padding: 4px 8px;
+        font-size: 12px;
+        border: none;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 0.8em;
-      }
-      body.dark-mode .msg-actions button,
-      body.dark-mode .edit-actions button {
-        background: #444;
-        border: 1px solid #666;
+        background: #4caf50;
         color: #fff;
-      }
-      .edit-textarea {
-        width: 100%;
-        box-sizing: border-box;
-        height: 100px;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid #ccc;
-      }
-      .highlight-message {
-        animation: highlight 2s ease-out forwards;
-      }
-      @keyframes highlight {
-        0% {
-          background-color: yellow;
-        }
-        100% {
-          background-color: initial;
-        }
       }
       .download-dropdown {
         position: relative;
@@ -302,426 +277,729 @@
         display: none;
         position: absolute;
         background-color: #f9f9f9;
-        min-width: 100px;
+        min-width: 120px;
         box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
         z-index: 1;
-        flex-direction: column;
         border-radius: 5px;
-        padding: 5px;
-      }
-      body.dark-mode .download-dropdown-content {
-        background-color: #333;
+        padding: 5px 0;
+        top: 100%;
+        left: 0;
       }
       .download-dropdown-content button {
+        color: black;
+        padding: 8px 16px;
+        text-decoration: none;
+        display: block;
+        background: none;
+        border: none;
         width: 100%;
-        padding: 8px 10px;
         text-align: left;
-      }
-      #map-modal {
-        display: none;
-        position: fixed;
-        z-index: 100;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        justify-content: center;
-        align-items: center;
-      }
-      #map-modal-content {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        width: 80%;
-        height: 80%;
-        overflow: auto;
-        position: relative;
-      }
-      body.dark-mode #map-modal-content {
-        background-color: #2a2a2a;
-      }
-      #close-map-modal {
-        position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 30px;
-        font-weight: bold;
         cursor: pointer;
-        color: #000;
       }
-      body.dark-mode #close-map-modal {
-        color: #fff;
+      .download-dropdown-content button:hover {
+        background-color: #f1f1f1;
       }
-      .mermaid {
-        height: 100%;
+      .edit-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 5px;
+        justify-content: flex-end;
+      }
+      .edit-actions button {
+        padding: 6px 12px;
+        font-size: 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .edit-actions .save {
+        background: #4caf50;
+        color: white;
+      }
+      .edit-actions .cancel {
+        background: #f44336;
+        color: white;
+      }
+      .edit-textarea {
         width: 100%;
-      }
-      #user-profile-modal {
-        display: none;
-        position: fixed;
-        z-index: 100;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        justify-content: center;
-        align-items: center;
-      }
-      #user-profile-modal-content {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        max-width: 500px;
-        width: 90%;
-        position: relative;
-        text-align: center;
-      }
-      body.dark-mode #user-profile-modal-content {
-        background-color: #2a2a2a;
-      }
-      .profile-info p {
-        margin: 10px 0;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid #ccc;
+        font-size: 1.1rem;
+        box-sizing: border-box;
+        resize: vertical;
+        min-height: 50px;
       }
       #file-info-bar {
+        background-color: #f0f8ff;
+        padding: 10px 20px;
+        border-top: 1px solid #ddd;
         display: none;
-        justify-content: space-between;
         align-items: center;
-        background-color: #e0f7fa;
-        padding: 8px 15px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        color: #00796b;
-      }
-      #file-info-bar span {
-        font-weight: bold;
+        justify-content: space-between;
+        font-size: 14px;
+        color: #333;
       }
       #file-info-bar button {
         background: none;
         border: none;
-        color: #d32f2f;
-        font-size: 1.2em;
+        font-weight: bold;
+        color: #ff4d4d;
         cursor: pointer;
       }
-      #add-btn,
-      #clear-chat-btn,
-      #map-btn {
-        background-color: #007bff;
+      .file-sent-banner {
+        background-color: #5d3fd3;
+        color: #fff;
+        padding: 6px 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        margin-bottom: 5px;
+        align-self: flex-end;
+      }
+      #input-container {
+        display: flex;
+        padding: 20px;
+        gap: 8px;
+        border-top: 2px solid #4caf50;
+        background: #fff;
+        align-items: center;
+        position: relative;
+      }
+      body.dark-mode #input-container {
+        background: #333;
+        border-top: 2px solid #2e7d32;
+      }
+      #input-container input {
+        flex: 1;
+        padding: 16px 20px;
+        border-radius: 25px;
+        border: 1px solid #ddd;
+        outline: none;
+        font-size: 1.1rem;
+      }
+      #input-container button {
+        padding: 14px 24px;
+        border-radius: 25px;
+        border: none;
+        background: #4caf50;
         color: white;
-        padding: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+        flex-shrink: 0;
+      }
+      #input-container button#add-btn {
+        background: none;
+        font-size: 2.5rem;
+        color: #4caf50;
+        padding: 0 10px;
+        font-weight: normal;
+        border: 2px solid #4caf50;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
         display: flex;
         justify-content: center;
         align-items: center;
-        cursor: pointer;
-        font-size: 1.5em;
-        border: none;
-        margin-left: 10px;
       }
-      #add-btn {
-        position: relative;
+      #input-container button#add-btn:hover {
+        background: #e6e6e6;
       }
       #file-menu-dropdown {
         position: absolute;
-        bottom: 100%;
-        left: 0;
+        bottom: 70px;
+        left: 20px;
         background-color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: none;
         flex-direction: column;
         gap: 5px;
-        padding: 5px;
-        display: none;
+        padding: 10px;
       }
       #file-menu-dropdown button {
-        background-color: transparent;
-        color: #000;
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: normal;
+        width: 100%;
+        text-align: left;
       }
       #file-menu-dropdown button:hover {
-        background-color: #f0f0f0;
-      }
-      body.dark-mode #file-menu-dropdown {
-        background-color: #333;
-        border: 1px solid #555;
-      }
-      body.dark-mode #file-menu-dropdown button {
-        color: #fff;
+        background: #e0e0e0;
       }
       #pinned-column {
-        width: 300px;
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-left: 1px solid #ddd;
-        display: none;
-        flex-direction: column;
-        gap: 15px;
-        overflow-y: auto;
-      }
-      body.dark-mode #pinned-column {
-        background-color: #1a1a1a;
-        border-left: 1px solid #444;
-      }
-      #pinned-column h3 {
-        margin: 0;
-        font-size: 1.2em;
-        text-align: center;
-      }
-      #pinned-column select {
-        width: 100%;
-        padding: 8px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        background-color: #fff;
-      }
-      body.dark-mode #pinned-column select {
-        background-color: #333;
-        color: #fff;
-        border: 1px solid #555;
-      }
-      .pinned-list {
+        width: 260px;
+        background: rgba(224, 255, 224, 0.8);
         display: flex;
         flex-direction: column;
+        padding: 12px;
         gap: 10px;
+        overflow-y: auto;
+        border-left: 2px solid #4caf50;
+        display: none;
+      }
+      body.dark-mode #pinned-column {
+        background: #222;
+        border-left: 2px solid #2e7d32;
       }
       .pinned-btn {
         padding: 10px;
-        border-radius: 8px;
-        background-color: #e9ecef;
-        border-left: 4px solid gold;
+        border-radius: 18px;
+        background: #4caf50;
+        color: #fff;
         cursor: pointer;
-        transition: background-color 0.2s;
-        font-size: 0.9em;
-        line-height: 1.4;
-      }
-      body.dark-mode .pinned-btn {
-        background-color: #444;
+        font-size: 14px;
+        text-align: left;
       }
       .pinned-btn:hover {
-        background-color: #dee2e6;
+        background: #66bb6a;
       }
-      body.dark-mode .pinned-btn:hover {
-        background-color: #555;
+      .divider {
+        border-top: 2px solid #4caf50;
+        margin: 10px 0;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .typing-indicator-wrapper {
+        display: flex;
+        align-self: flex-start;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 5px;
+      }
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        margin-top: 5px;
+        padding: 16px 20px;
+        background-color: #e0e0e0;
+        border-radius: 18px;
+        max-width: 70%;
+        align-items: center;
+      }
+      .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background-color: #4caf50;
+        border-radius: 50%;
+        animation: pulse 1.5s infinite;
+      }
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      #ask-button {
+        position: absolute;
+        display: none;
+        padding: 8px 12px;
+        border-radius: 25px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+        transform: translateY(-50%);
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 20;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+      .modal-content.dark-mode {
+        background-color: #333;
+        color: #fff;
+      }
+      .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .close-button:hover,
+      .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .modal-content.dark-mode .close-button:hover,
+      .modal-content.dark-mode .close-button:focus {
+        color: white;
+      }
+      #mermaid-container {
+        height: 400px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #pinned-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      #pinned-header h3 {
+        margin: 0;
+      }
+      .highlight-message {
+        animation: highlight 2s ease-in-out;
+      }
+      @keyframes highlight {
+        0% {
+          background-color: rgba(255, 255, 0, 0.5);
+        }
+        100% {
+          background-color: transparent;
+        }
+      }
+      #user-profile-modal-content {
+        text-align: left;
+      }
+      #user-profile-modal-content h3 {
+        color: #4caf50;
+        margin-top: 0;
+      }
+      #user-profile-modal-content p {
+        font-size: 1.1em;
+        margin: 10px 0;
+      }
+      .modal-button-group {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .modal-button-group button {
+        padding: 12px 20px;
+        border-radius: 18px;
+        background: #4caf50;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+      .modal-button-group button:hover {
+        background: #66bb6a;
+      }
+      .hidden {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div id="chat-wrapper">
-      <div id="sidebar"></div>
+    <div id="login-form" class="form-container">
+      <h2>Bem-vindo!</h2>
+      <p>Por favor, entre ou crie sua conta.</p>
+      <input type="email" id="login-email" placeholder="Seu e-mail" required />
+      <input
+        type="password"
+        id="login-password"
+        placeholder="Sua senha"
+        required
+      />
+      <button onclick="handleLogin()">Entrar</button>
+      <div class="form-toggle" onclick="toggleForm('register')">
+        Não tem uma conta? Cadastre-se
+      </div>
+    </div>
 
-      <div id="main-chat-container">
-        <div id="chat-header">Novo Chat</div>
+    <div id="register-form" class="form-container hidden">
+      <h2>Bem-vindo ao Genesis</h2>
+      <p>Preencha seus dados para continuar.</p>
+      <input
+        type="text"
+        id="register-username"
+        placeholder="Nome de usuário"
+        required
+      />
+      <input
+        type="email"
+        id="register-email"
+        placeholder="Seu e-mail"
+        required
+      />
+      <input
+        type="password"
+        id="register-password"
+        placeholder="Crie sua senha"
+        required
+      />
+      <input type="date" id="register-dob" required />
+      <button onclick="handleRegister()">Cadastrar</button>
+      <div class="form-toggle" onclick="toggleForm('login')">
+        Já tem uma conta? Entrar
+      </div>
+    </div>
+
+    <div id="chat-wrapper" class="hidden">
+      <div id="sidebar"></div>
+      <div id="chat-area">
+        <div id="chat-header">
+          <div class="chatbot-profile">
+            <span>Genesis</span>
+          </div>
+          <div>
+            <button onclick="clearCurrentChat()">
+              🗑 Apagar todas as mensagens desse chat
+            </button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div id="search-container">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Pesquisar no chat..."
+            oninput="searchMessages()"
+          />
+        </div>
+        <div class="divider"></div>
         <div id="messages"></div>
+        <div class="divider"></div>
         <div id="file-info-bar">
-          <span id="file-name-span"></span>
-          <button onclick="clearFileSelection()">✖</button>
+          <span>Documento: </span>
+          <span id="file-name"></span>
+          <button onclick="clearFileSelection()">x</button>
         </div>
         <div id="input-container">
-          <button id="add-btn">+</button>
+          <div id="input-actions">
+            <button id="add-btn">+</button>
+            <input
+              type="file"
+              id="upload-file"
+              accept=".txt,.pdf,.doc,.docx"
+              onchange="handleFileUpload(event)"
+              style="display: none"
+            />
+          </div>
           <input
             type="text"
             id="user-input"
             placeholder="Digite sua mensagem..."
           />
           <button id="send-btn">Enviar</button>
-          <button id="clear-chat-btn" onclick="clearCurrentChat()">
-            Limpar
-          </button>
-          <button id="map-btn">🌐</button>
+          <div id="file-menu-dropdown">
+            <button id="btn-pdf">PDF</button>
+            <button id="btn-word">Word</button>
+            <button id="btn-txt">TXT</button>
+          </div>
         </div>
       </div>
-
       <div id="pinned-column">
-        <h3>Mensagens Fixadas</h3>
-        <select id="pinned-filter" onchange="filterPinned()">
-          <option value="all">Todos</option>
-          <option value="user">Usuário</option>
-          <option value="bot">IA</option>
-        </select>
-        <div id="pinned-list" class="pinned-list"></div>
+        <div id="pinned-header">
+          <h3>Fixados</h3>
+          <select id="pinned-filter" onchange="filterPinned()">
+            <option value="all">Todos</option>
+            <option value="bot">Chatbot</option>
+            <option value="user">Usuário</option>
+          </select>
+        </div>
+        <div id="pinned-list"></div>
       </div>
     </div>
+    <button id="ask-button">Perguntar ao Chat</button>
 
     <div id="map-modal" class="modal">
       <div id="map-modal-content" class="modal-content">
-        <span class="close" id="close-map-modal" onclick="closeModal('map-modal')"
+        <span class="close-button" onclick="closeModal('map-modal')"
           >&times;</span
         >
+        <h2>Mapa de Ideias</h2>
         <div id="mermaid-container"></div>
       </div>
     </div>
 
     <div id="user-profile-modal" class="modal">
       <div id="user-profile-modal-content" class="modal-content">
-        <span
-          class="close"
-          id="close-user-profile-modal"
-          onclick="closeModal('user-profile-modal')"
+        <span class="close-button" onclick="closeModal('user-profile-modal')"
           >&times;</span
         >
-        <h2>👤 Seu Perfil</h2>
-        <div class="profile-info">
+        <h2>Perfil de Usuário</h2>
+        <div class="modal-button-group">
+          <button onclick="showUserData()">Ver Dados</button>
+          <button onclick="logout()">Sair da Conta</button>
+        </div>
+        <div id="user-info" class="hidden" style="margin-top: 20px">
+          <p><strong>Nome:</strong> <span id="profile-name"></span></p>
+          <p><strong>E-mail:</strong> <span id="profile-email"></span></p>
+          <p><strong>Senha:</strong> <span id="profile-password"></span></p>
           <p>
-            Esta é a tela de perfil do usuário. Aqui você poderia exibir
-            informações como nome, configurações e histórico.
-          </p>
-          <p>
-            *Esta é uma funcionalidade em desenvolvimento e pode ser expandida
-            futuramente.*
+            <strong>Data de Nascimento:</strong> <span id="profile-dob"></span>
           </p>
         </div>
       </div>
     </div>
 
-    <input
-      type="file"
-      id="upload-file"
-      style="display: none"
-      onchange="handleFileUpload(event)"
-    />
-
+    <script src="https://js.puter.com/v2/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>
-      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
-      const localStorageKey = "chatbotChats";
-
-      const sidebar = document.getElementById("sidebar");
       const messages = document.getElementById("messages");
+      const sidebar = document.getElementById("sidebar");
+      const pinnedColumn = document.getElementById("pinned-column");
+      const pinnedList = document.getElementById("pinned-list");
+      const pinnedFilter = document.getElementById("pinned-filter");
+      const searchInput = document.getElementById("search-input");
       const userInput = document.getElementById("user-input");
-      const mapBtn = document.getElementById("map-btn");
+      const askButton = document.getElementById("ask-button");
       const mapModal = document.getElementById("map-modal");
       const mermaidContainer = document.getElementById("mermaid-container");
-      const userProfileModal = document.getElementById("user-profile-modal");
+      const modalContent = document.getElementById("map-modal-content");
+      const addBtn = document.getElementById("add-btn");
       const uploadFile = document.getElementById("upload-file");
-      const fileInfoBar = document.getElementById("file-info-bar");
-      const fileNameSpan = document.getElementById("file-name-span");
       const fileMenuDropdown = document.getElementById("file-menu-dropdown");
-      const pinnedColumn = document.getElementById("pinned-column");
-      const pinnedFilter = document.getElementById("pinned-filter");
-      const pinnedList = document.getElementById("pinned-list");
-      const clearChatBtn = document.getElementById("clear-chat-btn");
-      const searchInput = document.getElementById("search-input");
-      const modalContent = document.querySelector(".modal-content");
+      const fileInfoBar = document.getElementById("file-info-bar");
+      const fileNameSpan = document.getElementById("file-name");
 
-      let chats = [];
-      let currentChat = -1;
+      const loginForm = document.getElementById("login-form");
+      const registerForm = document.getElementById("register-form");
+      const chatWrapper = document.getElementById("chat-wrapper");
+      const userProfileModal = document.getElementById("user-profile-modal");
+      const profileName = document.getElementById("profile-name");
+      const profileEmail = document.getElementById("profile-email");
+      const profilePassword = document.getElementById("profile-password");
+      const profileDob = document.getElementById("profile-dob");
+      const userInfoDiv = document.getElementById("user-info");
+
+      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
+      let chats = [],
+        currentChat = -1;
       let uploadedFile = null;
+      let activeRequests = new Map();
       let isEditing = false;
       let originalMessageId = null;
-      const activeRequests = new Map();
+      let userData = null;
 
-      document.addEventListener("DOMContentLoaded", () => {
-        loadChats();
-        if (chats.length > 0) {
-          switchChat(0);
-        } else {
-          newChat();
-        }
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "default",
+        securityLevel: "loose",
       });
 
-      mapBtn.onclick = async () => {
-        const botMessages = chats[currentChat].messages.filter(
-          (m) => m.sender === "bot" && m.text && !m.isImage && !m.isLinkList
-        );
-        if (botMessages.length === 0) {
-          alert("Não há mensagens de IA para mapear neste chat.");
-          return;
-        }
-        const lastBotMessage = botMessages[botMessages.length - 1];
-
-        const promptText = `Crie um mapa mental a partir do seguinte texto, no formato JSON. O JSON deve conter um array 'nodes' com os conceitos e um array 'links' com as conexões entre eles. As ligações devem ser uma tupla [origem, destino]. Exemplo: {"nodes": ["conceito A", "conceito B"], "links": [["conceito A", "conceito B"]]}. Mapeie apenas a mensagem mais recente da IA: "${lastBotMessage.text}"`;
-
-        const newId = Date.now();
-        addMessageToChat(
-          { text: "Gerando mapa mental...", sender: "bot" },
-          currentChat
-        );
-        chats[currentChat].isTyping = true;
-        renderCurrentChat();
-
-        try {
-          const response = await puter.ai.chat(promptText, {
-            model: "gpt-5-nano",
-          });
-          const messageToUpdate = chats[currentChat].messages.find(
-            (m) => m.id === newId
-          );
-          if (messageToUpdate) {
-            messageToUpdate.text = response;
-            showMapModal(response);
-          }
-        } catch (e) {
-          console.error("Erro ao gerar mapa mental:", e);
-          handleIncomingResponse(
-            "Não foi possível gerar o mapa. Por favor, tente novamente mais tarde.",
-            newId,
-            true
-          );
-        } finally {
-          chats[currentChat].isTyping = false;
-          renderCurrentChat();
-          saveChats();
+      window.onload = function () {
+        const storedUser = localStorage.getItem("userData");
+        if (storedUser) {
+          userData = JSON.parse(storedUser);
+          startChatSession();
+        } else {
+          toggleForm("login");
         }
       };
 
-      function saveChats() {
-        localStorage.setItem(localStorageKey, JSON.stringify(chats));
+      function toggleForm(formId) {
+        loginForm.classList.add("hidden");
+        registerForm.classList.add("hidden");
+        document.getElementById(formId + "-form").classList.remove("hidden");
       }
 
-      function loadChats() {
-        const storedChats = localStorage.getItem(localStorageKey);
-        if (storedChats) {
-          chats = JSON.parse(storedChats);
+      function handleLogin() {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
+        const storedUser = localStorage.getItem("userData");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (user.email === email && user.password === password) {
+            userData = user;
+            startChatSession();
+          } else {
+            alert("E-mail ou senha incorretos.");
+          }
+        } else {
+          alert("Nenhum usuário encontrado. Por favor, cadastre-se primeiro.");
         }
       }
 
+      function handleRegister() {
+        const username = document.getElementById("register-username").value;
+        const email = document.getElementById("register-email").value;
+        const password = document.getElementById("register-password").value;
+        const dob = document.getElementById("register-dob").value;
+        if (username && email && password && dob) {
+          userData = { username, email, password, dob };
+          localStorage.setItem("userData", JSON.stringify(userData));
+          startChatSession();
+        } else {
+          alert("Por favor, preencha todos os campos.");
+        }
+      }
+
+      function startChatSession() {
+        loginForm.classList.add("hidden");
+        registerForm.classList.add("hidden");
+        chatWrapper.classList.remove("hidden");
+        chatWrapper.style.display = "flex";
+        loadChats();
+      }
+
+      function showUserProfile() {
+        if (userData) {
+          userProfileModal.style.display = "block";
+          userInfoDiv.classList.add("hidden");
+        }
+      }
+
+      function showUserData() {
+        if (userData) {
+          profileName.textContent = userData.username;
+          profileEmail.textContent = userData.email;
+          profilePassword.textContent = "•".repeat(userData.password.length);
+          profileDob.textContent = userData.dob;
+          userInfoDiv.classList.remove("hidden");
+        }
+      }
+
+      function logout() {
+        if (confirm("Tem certeza que deseja sair da sua conta?")) {
+          localStorage.removeItem("userData");
+          userData = null;
+          chatWrapper.classList.add("hidden");
+          toggleForm("login");
+          closeModal("user-profile-modal");
+        }
+      }
+
+      function saveChats() {
+        try {
+          localStorage.setItem("chats", JSON.stringify(chats));
+        } catch (e) {
+          console.error("Failed to save chats to localStorage.", e);
+        }
+      }
+
+      function loadChats() {
+        let storedChats;
+        try {
+          storedChats = JSON.parse(localStorage.getItem("chats"));
+          if (!storedChats || !Array.isArray(storedChats)) {
+            throw new Error("Invalid chat data in localStorage");
+          }
+        } catch (e) {
+          console.error(
+            "Failed to parse chats from localStorage, resetting data."
+          );
+          storedChats = null;
+        }
+
+        if (storedChats && storedChats.length > 0) {
+          chats = storedChats;
+          currentChat = 0;
+        } else {
+          chats = [{ name: `Chat 1`, messages: [], isTyping: false }];
+          currentChat = 0;
+          saveChats();
+        }
+
+        renderSidebar();
+        renderCurrentChat();
+      }
+
       function newChat() {
-        chats.push({ name: `Chat ${chats.length + 1}`, messages: [] });
+        chats.push({ name: `Chat ${chats.length + 1}`, messages: [], isTyping: false });
         currentChat = chats.length - 1;
         renderSidebar();
-        switchChat(currentChat);
+        renderCurrentChat();
         saveChats();
       }
 
+      function clearCurrentChat() {
+        if (
+          confirm(
+            "Tem certeza que deseja apagar todas as mensagens deste chat?"
+          )
+        ) {
+          chats[currentChat].messages = [];
+          saveChats();
+          renderCurrentChat();
+        }
+      }
+
+      function clearAllChats() {
+        if (
+          confirm(
+            "Tem certeza que deseja apagar todos os chats e começar do zero?"
+          )
+        ) {
+          chats = [{ name: `Chat 1`, messages: [], isTyping: false }];
+          currentChat = 0;
+          saveChats();
+          renderSidebar();
+          renderCurrentChat();
+        }
+      }
+
       function switchChat(index) {
-        if (isEditing) return;
+        if (index < 0 || index >= chats.length) return;
         currentChat = index;
         renderSidebar();
         renderCurrentChat();
+        saveChats();
       }
 
       function renderCurrentChat() {
         messages.innerHTML = "";
-        if (currentChat < 0) return;
-        const currentMessages = chats[currentChat].messages;
-        currentMessages.forEach((m) => {
-          const messageElement = createMessageElement(m);
-          messages.appendChild(messageElement);
+        chats[currentChat].messages.forEach((m) => {
+          messages.appendChild(createMessageElement(m));
         });
         if (chats[currentChat].isTyping) {
-          messages.innerHTML += `<div class="message bot typing">Digitando...</div>`;
+          const typingWrapper = document.createElement("div");
+          typingWrapper.className = "typing-indicator-wrapper";
+          const typingIndicator = document.createElement("div");
+          typingIndicator.className = "typing-indicator";
+          typingIndicator.innerHTML = "<span></span><span></span><span></span>";
+          typingWrapper.appendChild(typingIndicator);
+          messages.appendChild(typingWrapper);
         }
-        updateChatHeader();
         messages.scrollTop = messages.scrollHeight;
-      }
-
-      function updateChatHeader() {
-        document.getElementById("chat-header").innerText =
-          chats[currentChat].name;
-      }
-
-      function showUserProfile() {
-        userProfileModal.style.display = "flex";
-      }
-
-      function clearAllChats() {
-        if (confirm("Tem certeza de que deseja apagar TODOS os chats?")) {
-          chats = [];
-          newChat();
-          saveChats();
-          updatePinnedColumn();
-        }
       }
 
       function renameChat(index) {
@@ -738,9 +1016,7 @@
 
       function deleteChat(index) {
         if (
-          confirm(
-            `Tem certeza de que deseja apagar o chat "${chats[index].name}"?`
-          )
+          confirm(`Tem certeza de que deseja apagar o chat "${chats[index].name}"?`)
         ) {
           chats.splice(index, 1);
           if (chats.length === 0) {
@@ -756,43 +1032,38 @@
 
       function renderSidebar() {
         sidebar.innerHTML = "";
-
         const userBtn = document.createElement("div");
         userBtn.className = "sidebar-btn";
         userBtn.innerHTML = `<span>👤 Usuário</span>`;
         userBtn.onclick = showUserProfile;
         sidebar.appendChild(userBtn);
-
         const pinnedBtn = document.createElement("div");
         pinnedBtn.className = "sidebar-btn";
         pinnedBtn.innerHTML = `<span>⭐ Fixados</span>`;
         pinnedBtn.onclick = togglePinnedColumn;
         sidebar.appendChild(pinnedBtn);
-
         chats.forEach((c, i) => {
           const btn = document.createElement("div");
           btn.className = "sidebar-btn" + (i === currentChat ? " active" : "");
           btn.innerHTML = `
-            <span>${c.name}</span>
-            <div class="sidebar-btn-options" onclick="event.stopPropagation(); showChatMenu(event, ${i})">...</div>
-            <div id="chat-menu-${i}" class="chat-menu">
-              <button onclick="renameChat(${i})">Renomear</button>
-              <button onclick="deleteChat(${i})">Apagar</button>
-            </div>
-          `;
+        <span>${c.name}</span>
+        <div class="sidebar-btn-options" onclick="event.stopPropagation(); showChatMenu(event, ${i})">...</div>
+        <div id="chat-menu-${i}" class="chat-menu">
+          <button onclick="renameChat(${i})">Renomear</button>
+          <button onclick="deleteChat(${i})">Apagar</button>
+        </div>
+      `;
           btn.onclick = () => {
             switchChat(i);
             pinnedColumn.style.display = "none";
           };
           sidebar.appendChild(btn);
         });
-
         const newBtn = document.createElement("div");
         newBtn.className = "sidebar-btn";
         newBtn.textContent = "+ Novo Chat";
         newBtn.onclick = newChat;
         sidebar.appendChild(newBtn);
-
         const resetBtn = document.createElement("div");
         resetBtn.className = "sidebar-btn";
         resetBtn.textContent = "Apagar Tudo";
@@ -833,9 +1104,7 @@
           doc.text(text, 10, 10);
           doc.save("mensagem.pdf");
         } else if (type === "word") {
-          const blob = new Blob([text], {
-            type: "application/msword",
-          });
+          const blob = new Blob([text], { type: "application/msword" });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
           link.download = "mensagem.doc";
@@ -868,17 +1137,8 @@
       }
 
       function createMessageElement(messageData) {
-        const {
-          text,
-          sender,
-          pinned,
-          fileName,
-          id,
-          chatIndex,
-          isImage,
-          isLinkList,
-        } = messageData;
-
+        const { text, sender, pinned, fileName, id, chatIndex, isImage, isLinkList } =
+          messageData;
         const wrapper = document.createElement("div");
         wrapper.className = "message-wrapper";
         wrapper.setAttribute("data-id", id);
@@ -901,749 +1161,289 @@
           msgDiv.appendChild(imgElement);
         } else if (isLinkList) {
           const title = document.createElement("p");
-          title.innerHTML = `**Aqui estão alguns sites para encontrar imagens sobre o seu tema:**`;
+          title.innerHTML = `**Aqui estão alguns sites para "a sua pesquisa":**`;
           msgDiv.appendChild(title);
           const ul = document.createElement("ul");
-          text.forEach((linkObj) => {
+          text.forEach((item) => {
             const li = document.createElement("li");
             const a = document.createElement("a");
-            a.href = linkObj.url;
-            a.textContent = linkObj.name;
+            a.href = item.url;
+            a.textContent = item.title || item.url;
             a.target = "_blank";
+            a.rel = "noopener noreferrer";
             li.appendChild(a);
             ul.appendChild(li);
           });
           msgDiv.appendChild(ul);
         } else {
-          msgDiv.innerText = text;
+          let formattedText = text.replace(
+            /(https?:\/\/[^\s]+)/g,
+            '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+          );
+          formattedText = formattedText.replace(
+            /\*\*(.*?)\*\*/g,
+            "<strong>$1</strong>"
+          );
+          formattedText = formattedText.replace(/\*(.*?)\*/g, "<em>$1</em>");
+          msgDiv.innerHTML = formattedText;
         }
 
         wrapper.appendChild(msgDiv);
 
-        if (text) {
-          const actions = document.createElement("div");
-          actions.className = "msg-actions";
-          actions.style.justifyContent =
-            sender === "user" ? "flex-end" : "flex-start";
-
-          if (sender === "bot") {
-            const editBtn = document.createElement("button");
-            editBtn.innerText = "Editar";
-            editBtn.onclick = () => startEdit(id);
-            actions.appendChild(editBtn);
-
-            const summarizeBtn = document.createElement("button");
-            summarizeBtn.innerText = "Resumir";
-            summarizeBtn.onclick = async () => {
-              const newId = Date.now();
-              addMessageToChat({ text: "", sender: "bot" }, currentChat);
-              chats[currentChat].isTyping = true;
-              renderCurrentChat();
-              try {
-                const promptText = `Por favor, resuma o seguinte texto de forma concisa:\n\n"${text}"`;
-                const response = await puter.ai.chat(promptText, {
-                  model: "gpt-5-nano",
-                });
-                handleIncomingResponse(response, newId);
-              } catch (e) {
-                handleIncomingResponse(
-                  "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde.",
-                  newId,
-                  true
-                );
-              }
-            };
-            actions.appendChild(summarizeBtn);
-
-            const downloadDropdown = document.createElement("div");
-            downloadDropdown.className = "download-dropdown";
-            const downloadBtn = document.createElement("button");
-            downloadBtn.innerText = "Download";
-            downloadBtn.onclick = (e) => {
-              e.stopPropagation();
-              const dropdownContent = downloadBtn.nextElementSibling;
-              dropdownContent.style.display =
-                dropdownContent.style.display === "block" ? "none" : "block";
-            };
-            const dropdownContent = document.createElement("div");
-            dropdownContent.className = "download-dropdown-content";
-
-            if (isImage) {
-              const imgDownloadBtn = document.createElement("button");
-              imgDownloadBtn.innerText = "Baixar Foto";
-              imgDownloadBtn.onclick = (e) => {
-                e.stopPropagation();
-                downloadImage(text);
-                dropdownContent.style.display = "none";
-              };
-              dropdownContent.appendChild(imgDownloadBtn);
-            } else {
-              const pdfBtn = document.createElement("button");
-              pdfBtn.innerText = "PDF";
-              pdfBtn.onclick = (e) => {
-                e.stopPropagation();
-                downloadSingleMessage(text, "pdf");
-                dropdownContent.style.display = "none";
-              };
-              const wordBtn = document.createElement("button");
-              wordBtn.innerText = "Word";
-              wordBtn.onclick = (e) => {
-                e.stopPropagation();
-                downloadSingleMessage(text, "word");
-                dropdownContent.style.display = "none";
-              };
-              dropdownContent.appendChild(pdfBtn);
-              dropdownContent.appendChild(wordBtn);
-            }
-
-            downloadDropdown.appendChild(downloadBtn);
-            downloadDropdown.appendChild(dropdownContent);
-            actions.appendChild(downloadDropdown);
-          }
+        if (sender === "bot") {
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "msg-actions";
 
           const pinBtn = document.createElement("button");
-          pinBtn.innerText = pinned ? "Desafixar" : "Fixar";
-          pinBtn.onclick = () => {
-            const m = chats[currentChat].messages.find((m) => m.id === id);
-            if (m) {
-              m.pinned = !m.pinned;
-              saveChats();
-              renderCurrentChat();
-              updatePinnedColumn();
-            }
-          };
-          const delBtn = document.createElement("button");
-          delBtn.innerText = "Apagar";
-          delBtn.onclick = () => {
-            deleteMessage(id);
-          };
+          pinBtn.innerHTML = pinned ? "📌 Desafixar" : "📌 Fixar";
+          pinBtn.onclick = () => pinMessage(id);
+          actionsDiv.appendChild(pinBtn);
 
-          actions.appendChild(pinBtn);
-          actions.appendChild(delBtn);
+          const copyBtn = document.createElement("button");
+          copyBtn.innerHTML = "📋 Copiar";
+          copyBtn.onclick = () => copyMessage(text);
+          actionsDiv.appendChild(copyBtn);
 
-          wrapper.appendChild(actions);
+          const deleteBtn = document.createElement("button");
+          deleteBtn.innerHTML = "🗑 Apagar";
+          deleteBtn.onclick = () => deleteMessage(id);
+          actionsDiv.appendChild(deleteBtn);
+
+          const downloadBtn = document.createElement("button");
+          downloadBtn.innerHTML = "📥 Baixar";
+          downloadBtn.onclick = () => showDownloadOptions(downloadBtn);
+          actionsDiv.appendChild(downloadBtn);
+
+          const dropdown = document.createElement("div");
+          dropdown.className = "download-dropdown-content";
+          dropdown.style.display = "none";
+
+          const pdfBtn = document.createElement("button");
+          pdfBtn.innerHTML = "PDF";
+          pdfBtn.onclick = () => downloadSingleMessage(text, "pdf");
+          dropdown.appendChild(pdfBtn);
+
+          const wordBtn = document.createElement("button");
+          wordBtn.innerHTML = "Word";
+          wordBtn.onclick = () => downloadSingleMessage(text, "word");
+          dropdown.appendChild(wordBtn);
+
+          downloadBtn.parentElement.appendChild(dropdown);
+
+          const brainstormBtn = document.createElement("button");
+          brainstormBtn.innerHTML = "💡 Mapa de Ideias";
+          brainstormBtn.onclick = () => openMermaidModal(text);
+          actionsDiv.appendChild(brainstormBtn);
+
+          msgDiv.appendChild(actionsDiv);
+        } else {
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "msg-actions";
+          actionsDiv.style.justifyContent = "flex-end";
+
+          const editBtn = document.createElement("button");
+          editBtn.innerHTML = "✏️ Editar";
+          editBtn.onclick = () => editMessage(id, text);
+          actionsDiv.appendChild(editBtn);
+
+          const pinBtn = document.createElement("button");
+          pinBtn.innerHTML = pinned ? "📌 Desafixar" : "📌 Fixar";
+          pinBtn.onclick = () => pinMessage(id);
+          actionsDiv.appendChild(pinBtn);
+
+          const copyBtn = document.createElement("button");
+          copyBtn.innerHTML = "📋 Copiar";
+          copyBtn.onclick = () => copyMessage(text);
+          actionsDiv.appendChild(copyBtn);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.innerHTML = "🗑 Apagar";
+          deleteBtn.onclick = () => deleteMessage(id);
+          actionsDiv.appendChild(deleteBtn);
+
+          msgDiv.appendChild(actionsDiv);
         }
-
         return wrapper;
       }
 
-      function addMessageToChat(messageData, chatIndex, aiRequestId = null) {
-        const newMessage = {
-          id: Date.now(),
-          aiRequestId,
-          ...messageData,
-        };
-        chats[chatIndex].messages.push(newMessage);
-        saveChats();
-
-        if (chatIndex === currentChat) {
-          renderCurrentChat();
-        }
-        return newMessage;
+      function showDownloadOptions(button) {
+        const dropdown = button.parentElement.querySelector(".download-dropdown-content");
+        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
       }
 
-      function generateMermaidSyntaxFromJSON(jsonData) {
-        if (!jsonData || !jsonData.nodes || !jsonData.links) {
-          return null;
-        }
-
-        let mermaidSyntax = "graph TD\n";
-        const nodeMap = new Map();
-        jsonData.nodes.forEach((node, index) => {
-          const safeNodeId = node.replace(/[^a-zA-Z0-9]/g, "_");
-          nodeMap.set(node, `N${index}(["${node}"])`);
-        });
-
-        jsonData.links.forEach((link) => {
-          const source = link[0];
-          const target = link[1];
-          if (nodeMap.has(source) && nodeMap.has(target)) {
-            mermaidSyntax += `    ${nodeMap.get(source).split('(["')[0]} --> ${
-              nodeMap.get(target).split('(["')[0]
-            }\n`;
-          }
-        });
-
-        let uniqueNodesSyntax = "";
-        nodeMap.forEach((value) => {
-          uniqueNodesSyntax += `    ${value}\n`;
-        });
-
-        return mermaidSyntax + uniqueNodesSyntax;
-      }
-
-      function showMapModal(aiResponse) {
-        if (typeof aiResponse !== "string") {
-          alert(
-            "Não foi possível gerar o mapa. A IA retornou um formato de dados inesperado. Por favor, tente mapear uma mensagem diferente."
-          );
+      function openMermaidModal(text) {
+        if (!mermaid) {
+          alert("A biblioteca Mermaid não foi carregada. Tente novamente mais tarde.");
           return;
         }
 
-        try {
-          const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            throw new Error("Conteúdo JSON não encontrado na resposta.");
-          }
-          const jsonString = jsonMatch[0];
-
-          const jsonData = JSON.parse(jsonString);
-          const mermaidSyntax = generateMermaidSyntaxFromJSON(jsonData);
-
-          if (!mermaidSyntax) {
-            throw new Error("Formato JSON inválido ou incompleto.");
-          }
-
-          mermaidContainer.innerHTML = `<pre class="mermaid">${mermaidSyntax}</pre>`;
+        mermaid.render("mermaid-chart", `graph TD; A[Mensagem Original] --> B[Análise de Ideias]; B --> C[Ideia 1]; B --> D[Ideia 2];`).then(({ svg }) => {
+          mermaidContainer.innerHTML = svg;
           mapModal.style.display = "block";
-          mermaid.init(undefined, mermaidContainer);
-        } catch (e) {
-          console.error("Erro ao gerar mapa:", e);
-          const errorMessage = `Não foi possível gerar o mapa. A IA retornou um formato de dados inesperado. Por favor, tente mapear uma mensagem diferente. Detalhes: ${e.message}`;
-          alert(errorMessage);
-        }
+        });
       }
 
       function closeModal(modalId) {
         document.getElementById(modalId).style.display = "none";
       }
 
-      window.onclick = function (event) {
-        if (event.target == mapModal) {
-          closeModal("map-modal");
+      function deleteMessage(messageId) {
+        chats[currentChat].messages = chats[currentChat].messages.filter(
+          (m) => m.id !== messageId
+        );
+        saveChats();
+        renderCurrentChat();
+      }
+
+      function pinMessage(messageId) {
+        const message = chats[currentChat].messages.find((m) => m.id === messageId);
+        if (message) {
+          message.pinned = !message.pinned;
+          saveChats();
+          renderCurrentChat();
+          updatePinnedColumn();
         }
-        if (event.target == userProfileModal) {
-          closeModal("user-profile-modal");
-        }
-      };
+      }
 
       function updatePinnedColumn() {
-        const filterValue = pinnedFilter.value;
         pinnedList.innerHTML = "";
-
-        const allPinned = [];
-        chats.forEach((chat, chatIndex) => {
-          chat.messages.forEach((msg) => {
-            if (msg.pinned) {
-              allPinned.push({
-                ...msg,
-                chatIndex: chatIndex,
-                chatName: chat.name,
-              });
-            }
-          });
-        });
-
-        const filteredPinned = allPinned.filter(
-          (m) => filterValue === "all" || m.sender === filterValue
+        const pinnedMessages = chats.flatMap((chat, index) =>
+          chat.messages.filter((m) => m.pinned).map((m) => ({ ...m, chatIndex: index }))
         );
 
-        if (filteredPinned.length === 0) {
-          pinnedList.innerHTML = `<p style="color:#666;text-align:center;padding:20px;">Nenhuma mensagem fixada.</p>`;
-          return;
-        }
-
-        filteredPinned.forEach((m) => {
-          const btn = document.createElement("div");
-          btn.className = "pinned-btn";
-          btn.innerHTML = `**${m.chatName} (${m.sender})**<br>${m.text.slice(
-            0,
-            50
-          )}...`;
-          btn.onclick = () => goToPinnedMessage(m.chatIndex, m.id);
-          pinnedList.appendChild(btn);
+        const filter = pinnedFilter.value;
+        const filteredMessages = pinnedMessages.filter((m) => {
+          if (filter === "all") return true;
+          return m.sender === filter;
         });
+
+        if (filteredMessages.length > 0) {
+          filteredMessages.forEach((m) => {
+            const btn = document.createElement("div");
+            btn.className = "pinned-btn";
+            btn.innerHTML = `<p>${m.text.substring(0, 50)}...</p>`;
+            btn.onclick = () => {
+              switchChat(m.chatIndex);
+              setTimeout(() => {
+                const element = document.querySelector(
+                  `.message-wrapper[data-id="${m.id}"]`
+                );
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth", block: "center" });
+                  element.classList.add("highlight-message");
+                  setTimeout(
+                    () => element.classList.remove("highlight-message"),
+                    2000
+                  );
+                }
+              }, 500);
+            };
+            pinnedList.appendChild(btn);
+          });
+        } else {
+          pinnedList.innerHTML = "<p>Nenhuma mensagem fixada.</p>";
+        }
       }
 
       function filterPinned() {
         updatePinnedColumn();
       }
 
-      function goToPinnedMessage(chatIndex, messageId) {
-        switchChat(chatIndex);
-        setTimeout(() => {
-          const msgDiv = document.querySelector(
-            `[data-id="${messageId}"] .message`
-          );
-          if (msgDiv) {
-            msgDiv.scrollIntoView({ behavior: "smooth", block: "center" });
-            msgDiv.classList.add("highlight-message");
-            setTimeout(() => {
-              msgDiv.classList.remove("highlight-message");
-            }, 2000);
-          }
-        }, 100);
-      }
-
-      function toggleTheme() {
-        document.body.classList.toggle("dark-mode");
-        modalContent.classList.toggle("dark-mode");
-      }
-
-      function clearCurrentChat() {
-        if (currentChat < 0) return;
-        if (confirm("Deseja apagar todas as mensagens do chat?")) {
-          messages.innerHTML = "";
-          chats[currentChat].messages = [];
-          saveChats();
-          updatePinnedColumn();
-        }
-      }
-
-      function searchMessages() {
-        const term = searchInput.value.toLowerCase();
-        document.querySelectorAll(".message").forEach((msg) => {
-          msg.parentElement.style.display = msg.innerText
-            .toLowerCase()
-            .includes(term)
-            ? "flex"
-            : "none";
-        });
+      function copyMessage(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            alert("Mensagem copiada para a área de transferência!");
+          })
+          .catch((err) => {
+            console.error("Erro ao copiar mensagem:", err);
+            alert("Falha ao copiar a mensagem.");
+          });
       }
 
       function handleFileUpload(event) {
         const file = event.target.files[0];
         if (file) {
           uploadedFile = file;
-          userInput.value = "Analisar documento";
-          fileNameSpan.textContent = uploadedFile.name;
+          fileNameSpan.textContent = file.name;
           fileInfoBar.style.display = "flex";
+          fileMenuDropdown.style.display = "none";
+          userInput.placeholder = `Pergunte sobre ${file.name}...`;
         }
-        event.target.value = null;
-        fileMenuDropdown.style.display = "none";
       }
 
       function clearFileSelection() {
         uploadedFile = null;
-        userInput.value = "";
         fileNameSpan.textContent = "";
         fileInfoBar.style.display = "none";
+        userInput.placeholder = "Digite sua mensagem...";
       }
 
-      function deleteMessage(messageId) {
-        const messageIndex = chats[currentChat].messages.findIndex(
-          (m) => m.id === messageId
-        );
-        if (messageIndex === -1) return;
-
-        const messageToDelete = chats[currentChat].messages[messageIndex];
-
-        if (messageToDelete.sender === "bot") {
-          if (
-            messageToDelete.aiRequestId &&
-            activeRequests.has(messageToDelete.aiRequestId)
-          ) {
-            activeRequests.get(messageToDelete.aiRequestId).controller.abort();
-            activeRequests.delete(messageToDelete.aiRequestId);
-          }
-          if (
-            messageIndex > 0 &&
-            chats[currentChat].messages[messageIndex - 1].sender === "user"
-          ) {
-            chats[currentChat].messages.splice(messageIndex - 1, 2);
-          } else {
-            chats[currentChat].messages.splice(messageIndex, 1);
-          }
-        } else {
-          const botMessageIndex = messageIndex + 1;
-          if (
-            botMessageIndex < chats[currentChat].messages.length &&
-            chats[currentChat].messages[botMessageIndex].sender === "bot"
-          ) {
-            const botMessage = chats[current - 1].messages[botMessageIndex];
-            if (
-              botMessage.aiRequestId &&
-              activeRequests.has(botMessage.aiRequestId)
-            ) {
-              activeRequests.get(botMessage.aiRequestId).controller.abort();
-              activeRequests.delete(botMessage.aiRequestId);
-            }
-            chats[currentChat].messages.splice(messageIndex, 2);
-          } else {
-            chats[currentChat].messages.splice(messageIndex, 1);
-          }
-        }
-
-        renderCurrentChat();
-        saveChats();
-        updatePinnedColumn();
-      }
-
-      function isGifRequest(text) {
-        const gifKeywords = [
-          "gif",
-          "giphy",
-          "gify",
-          "jif",
-          "jiphy",
-          "me mostra um gif",
-          "me mostra um gife",
-          "procurar gif",
-          "encontrar gif",
-          "criar gif",
-          "fazer gif",
-        ];
-        const lowerCaseText = text.toLowerCase();
-        return gifKeywords.some((keyword) => lowerCaseText.includes(keyword));
-      }
-
-      function isImageRequest(text) {
-        const imageKeywords = [
-          "foto",
-          "imagem",
-          "figura",
-          "desenho",
-          "ilustracao",
-          "gerar foto",
-          "criar imagem",
-          "procurar foto",
-          "mostrar foto",
-          "me mostra uma imagem",
-          "me mostra uma foto",
-          "me mostra um desenho",
-          "procura uma imagem",
-          "procurar imagem",
-          "buscar foto",
-          "buscar imagem",
-          "crie uma imagem de",
-          "faz uma imagem de",
-          "desenha um",
-          "desenha uma",
-          "fotografia de",
-        ];
-        const lowerCaseText = text.toLowerCase();
-        return imageKeywords.some((keyword) => lowerCaseText.includes(keyword));
-      }
-
-      function extractSearchTerm(text) {
-        const keywordsToRemove = [
-          "foto",
-          "imagem",
-          "figura",
-          "desenho",
-          "gif",
-          "giphy",
-          "gify",
-          "jif",
-          "jiphy",
-          "ilustracao",
-          "arte",
-          "pintura",
-          "gravura",
-          "esboço",
-          "sketch",
-          "renderizacao",
-          "fotografia",
-          "image",
-          "picture",
-          "de",
-          "do",
-          "da",
-          "o",
-          "a",
-          "um",
-          "uma",
-          "me",
-          "mostra",
-          "quero",
-          "ver",
-          "procurar",
-          "mostrar",
-          "buscar",
-          "criar",
-          "gere",
-          "crie",
-          "mostre",
-          "preciso",
-          "procure",
-          "visualizar",
-          "exibir",
-          "encontrar",
-          "desenhe",
-          "desenhar",
-          "renderizar",
-          "faz",
-          "picture",
-          "of",
-        ];
-        const lowerCaseText = text.toLowerCase();
-        const words = lowerCaseText.split(" ");
-        const filteredWords = words.filter(
-          (word) => !keywordsToRemove.includes(word)
-        );
-        return filteredWords.join(" ").trim();
-      }
-
-      async function searchForGif(searchTerm, botMessageId) {
-        try {
-          const url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&offset=0&rating=g&lang=en`;
-          const response = await fetch(url);
-          const data = await response.json();
-
-          const messageToUpdate = chats[currentChat].messages.find(
-            (m) => m.id === botMessageId
-          );
-
-          if (data.data && data.data.length > 0) {
-            const imageUrl = data.data[0].images.original.url;
-            messageToUpdate.text = imageUrl;
-            messageToUpdate.isImage = true;
-          } else {
-            messageToUpdate.text = `Desculpe, não encontrei nenhum gif para "${searchTerm}".`;
-          }
-        } catch (error) {
-          console.error("Erro ao buscar o gif:", error);
-          const messageToUpdate = chats[currentChat].messages.find(
-            (m) => m.id === botMessageId
-          );
-          messageToUpdate.text =
-            "Ocorreu um erro ao carregar o gif. Tente novamente mais tarde.";
-        } finally {
-          chats[currentChat].isTyping = false;
-          renderCurrentChat();
-          saveChats();
-        }
-      }
-
-      function searchForImageLinks(searchTerm, botMessageId) {
-        const links = [
-          {
-            name: "Pexels",
-            url: `https://www.pexels.com/search/${searchTerm}/`,
-          },
-          {
-            name: "Pixabay",
-            url: `https://pixabay.com/images/search/${searchTerm}/`,
-          },
-          {
-            name: "Unsplash",
-            url: `https://unsplash.com/s/photos/${searchTerm}`,
-          },
-          {
-            name: "Freepik",
-            url: `https://www.freepik.com/search?format=search&query=${searchTerm}`,
-          },
-        ];
-
-        const messageToUpdate = chats[currentChat].messages.find(
-          (m) => m.id === botMessageId
-        );
-        messageToUpdate.text = links;
-        messageToUpdate.isLinkList = true;
-        chats[currentChat].isTyping = false;
-        renderCurrentChat();
-        saveChats();
-      }
-
-      async function sendMessage(
-        text = userInput.value.trim(),
-        file = uploadedFile
-      ) {
-        if (currentChat < 0) newChat();
-
-        if (!text && !file) return;
-
-        for (let [reqId, reqData] of activeRequests.entries()) {
-          reqData.controller.abort();
-          activeRequests.delete(reqId);
-        }
-        chats[currentChat].isTyping = false;
-
-        const userMessage = addMessageToChat(
-          { text, sender: "user", fileName: file ? file.name : null },
-          currentChat
-        );
-
-        userInput.value = "";
-        clearFileSelection();
-
-        const searchTerm = extractSearchTerm(text);
-
-        if (isGifRequest(text)) {
-          const placeholderMessage = addMessageToChat(
-            { text: "Buscando gif...", sender: "bot", isImage: false },
-            currentChat
-          );
-          chats[currentChat].isTyping = true;
-          renderCurrentChat();
-          searchForGif(searchTerm, placeholderMessage.id);
-          return;
-        }
-
-        if (isImageRequest(text)) {
-          const placeholderMessage = addMessageToChat(
-            {
-              text: "Buscando links de imagens gratuitas...",
-              sender: "bot",
-              isLinkList: false,
-            },
-            currentChat
-          );
-          chats[currentChat].isTyping = true;
-          renderCurrentChat();
-          searchForImageLinks(searchTerm, placeholderMessage.id);
-          return;
-        }
-
-        let prompt = text;
-
-        if (file) {
-          try {
-            const fileReader = new FileReader();
-            const fileContent = await new Promise((resolve, reject) => {
-              fileReader.onload = (e) => resolve(e.target.result);
-              fileReader.onerror = (e) => reject(e);
-              fileReader.readAsText(file);
-            });
-            prompt = `O usuário fez o upload de um arquivo. O conteúdo do arquivo é:\n\n---\n${fileContent}\n---\n\nE a pergunta é: "${text}". Por favor, analise o documento e responda à pergunta.`;
-          } catch (e) {
-            console.error("Failed to read file:", e);
-            const errorMessage =
-              "Desculpe, não consegui ler o arquivo. Por favor, tente outro formato ou arquivo.";
-            addMessageToChat(
-              { text: errorMessage, sender: "bot" },
-              currentChat
-            );
-            return;
-          }
-        }
-
-        const controller = new AbortController();
-        const signal = controller.signal;
-        const aiRequestId = Date.now();
-
-        const placeholderMessage = addMessageToChat(
-          { text: "", sender: "bot", aiRequestId },
-          currentChat
-        );
-        activeRequests.set(aiRequestId, { controller });
-
-        chats[currentChat].isTyping = true;
-        renderCurrentChat();
-
-        try {
-          const response = await puter.ai.chat(prompt, {
-            model: "gpt-5-nano",
-            signal,
-          });
-          handleIncomingResponse(response, aiRequestId);
-        } catch (e) {
-          if (e.name === "AbortError") {
-            console.log("AI request aborted");
-            handleIncomingResponse(null, aiRequestId, false, true);
-          } else {
-            console.error("AI request failed:", e);
-            const errorMessage =
-              "Desculpe, o serviço de IA falhou. Por favor, tente novamente.";
-            handleIncomingResponse(errorMessage, aiRequestId, true);
-          }
-        }
-      }
-
-      async function handleIncomingResponse(
-        text,
-        requestId,
-        isError = false,
-        isAborted = false
-      ) {
-        const requestData = activeRequests.get(requestId);
-        if (isAborted) {
-          return;
-        }
-
-        activeRequests.delete(requestId);
-
-        let messageToUpdate = chats[currentChat].messages.find(
-          (m) => m.aiRequestId === requestId
-        );
-
-        if (messageToUpdate) {
-          if (isAborted) {
-            const userMessageIndex = chats[currentChat].messages.findIndex(
-              (m) => m.id === messageToUpdate.id - 1
-            );
-            if (userMessageIndex !== -1) {
-              chats[currentChat].messages.splice(userMessageIndex, 2);
-            }
-          } else {
-            messageToUpdate.text = text;
-          }
-        }
-
-        chats[currentChat].isTyping = false;
-        renderCurrentChat();
-        saveChats();
-      }
-
-      function startEdit(id) {
+      function editMessage(id, oldText) {
         if (isEditing) return;
-
         isEditing = true;
         originalMessageId = id;
 
-        const messageElement = document.querySelector(
+        const messageDiv = document.querySelector(
           `.message-wrapper[data-id="${id}"] .message`
         );
-        const originalText = messageElement.innerText;
-
-        const textarea = document.createElement("textarea");
-        textarea.className = "edit-textarea";
-        textarea.value = originalText;
-
-        messageElement.replaceWith(textarea);
-
         const actionsContainer = document.querySelector(
           `.message-wrapper[data-id="${id}"] .msg-actions`
         );
-        actionsContainer.style.display = "none";
+
+        if (!messageDiv || !actionsContainer) {
+          isEditing = false;
+          return;
+        }
+
+        const editArea = document.createElement("textarea");
+        editArea.className = "edit-textarea";
+        editArea.value = oldText;
 
         const editActions = document.createElement("div");
         editActions.className = "edit-actions";
 
         const saveBtn = document.createElement("button");
-        saveBtn.innerText = "Salvar";
         saveBtn.className = "save";
-        saveBtn.onclick = () => saveEdit(id, textarea.value);
+        saveBtn.textContent = "Salvar";
+        saveBtn.onclick = () => saveEdit(id, editArea.value);
 
         const cancelBtn = document.createElement("button");
-        cancelBtn.innerText = "Cancelar";
         cancelBtn.className = "cancel";
-        cancelBtn.onclick = () => cancelEdit(id, originalText);
+        cancelBtn.textContent = "Cancelar";
+        cancelBtn.onclick = () => cancelEdit();
 
         editActions.appendChild(saveBtn);
         editActions.appendChild(cancelBtn);
 
-        textarea.after(editActions);
-
-        textarea.focus();
+        messageDiv.replaceWith(editArea);
+        actionsContainer.style.display = "none";
+        editArea.after(editActions);
+        editArea.focus();
       }
 
       function saveEdit(id, newText) {
-        const messageObject = chats[currentChat].messages.find(
+        const messageIndex = chats[currentChat].messages.findIndex(
           (m) => m.id === id
         );
-        if (messageObject) {
-          messageObject.text = newText;
+        if (messageIndex !== -1) {
+          chats[currentChat].messages[messageIndex].text = newText;
+          saveChats();
+          renderCurrentChat();
         }
-
         isEditing = false;
-        renderCurrentChat();
-        saveChats();
+        originalMessageId = null;
       }
 
-      function cancelEdit(id, originalText) {
-        const messageElement = document.querySelector(
-          `.message-wrapper[data-id="${id}"] textarea`
+      function cancelEdit() {
+        const id = originalMessageId;
+        const editArea = document.querySelector(
+          `.message-wrapper[data-id="${id}"] .edit-textarea`
         );
-        const originalDiv = document.createElement("div");
-        originalDiv.className = "message bot";
-        originalDiv.innerText = originalText;
-
-        messageElement.replaceWith(originalDiv);
-
         const editActions = document.querySelector(
           `.message-wrapper[data-id="${id}"] .edit-actions`
         );
+        editArea.remove();
         editActions.remove();
 
         const actionsContainer = document.querySelector(
@@ -1655,29 +1455,184 @@
         renderCurrentChat();
       }
 
+      async function sendMessage() {
+        const userMessage = userInput.value.trim();
+        if (userMessage === "" && !uploadedFile) return;
+        if (isEditing) return;
+
+        const messageId = Date.now().toString();
+        const userMessageData = {
+          id: messageId,
+          text: userMessage,
+          sender: "user",
+          timestamp: new Date().toISOString(),
+          pinned: false,
+          fileName: uploadedFile ? uploadedFile.name : null,
+        };
+
+        chats[currentChat].messages.push(userMessageData);
+        saveChats();
+        renderCurrentChat();
+        userInput.value = "";
+
+        let conversationHistory = chats[currentChat].messages.map((msg) => {
+          return { role: msg.sender === "user" ? "user" : "model", parts: [{ text: msg.text }] };
+        });
+
+        // Add typing indicator
+        chats[currentChat].isTyping = true;
+        renderCurrentChat();
+
+        const generationConfig = {
+          temperature: 0.9,
+          topK: 1,
+          topP: 1,
+          maxOutputTokens: 2048,
+        };
+
+        const safetySettings = [{
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }, {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }, {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }, {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }, ];
+
+        const chatModel = puter.ai.GenerativeModel.fromModel("gemini-pro");
+
+        let stream;
+        try {
+          stream = await chatModel.generateContent({
+            contents: conversationHistory,
+            generationConfig,
+            safetySettings,
+          });
+
+          let botResponseText = '';
+          for await (const chunk of stream.stream) {
+            const chunkText = await chunk.text();
+            if (chunkText) {
+              botResponseText += chunkText;
+              const typingIndicator = messages.querySelector(".typing-indicator-wrapper");
+              if (typingIndicator) {
+                messages.removeChild(typingIndicator);
+              }
+              const tempMessage = {
+                id: Date.now().toString(),
+                text: botResponseText,
+                sender: "bot",
+                timestamp: new Date().toISOString(),
+                pinned: false,
+              };
+              messages.appendChild(createMessageElement(tempMessage));
+              messages.scrollTop = messages.scrollHeight;
+            }
+          }
+          const finalBotMessage = {
+            id: Date.now().toString(),
+            text: botResponseText,
+            sender: "bot",
+            timestamp: new Date().toISOString(),
+            pinned: false,
+          };
+          chats[currentChat].messages.push(finalBotMessage);
+          saveChats();
+        } catch (err) {
+          console.error("Error with AI model:", err);
+          chats[currentChat].messages.push({
+            id: Date.now().toString(),
+            text: "Desculpe, não consegui gerar uma resposta no momento. Por favor, tente novamente mais tarde.",
+            sender: "bot",
+            timestamp: new Date().toISOString(),
+            pinned: false,
+          });
+          saveChats();
+        } finally {
+          chats[currentChat].isTyping = false;
+          renderCurrentChat();
+        }
+      }
+
       userInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !isEditing) {
           sendMessage();
         }
       });
+
       document
         .getElementById("send-btn")
         .addEventListener("click", () => sendMessage());
+
       document.getElementById("add-btn").addEventListener("click", () => {
         const dropdown = document.getElementById("file-menu-dropdown");
         dropdown.style.display =
           dropdown.style.display === "flex" ? "none" : "flex";
       });
-      document.getElementById("btn-pdf").onclick = () => uploadFile.click();
-      document.getElementById("btn-word").onclick = () => uploadFile.click();
-      document.getElementById("btn-txt").onclick = () => uploadFile.click();
+
+      document.getElementById("btn-pdf").onclick = () => {
+        uploadFile.accept = ".pdf";
+        uploadFile.click();
+      };
+      document.getElementById("btn-word").onclick = () => {
+        uploadFile.accept = ".doc,.docx";
+        uploadFile.click();
+      };
+      document.getElementById("btn-txt").onclick = () => {
+        uploadFile.accept = ".txt";
+        uploadFile.click();
+      };
 
       const themeToggleBtn = document.createElement("button");
       themeToggleBtn.innerText = "🌙";
       themeToggleBtn.style.cssText =
         "position: fixed; bottom: 20px; right: 20px; font-size: 24px; background: #fff; border-radius: 50%; width: 50px; height: 50px; border: 2px solid #ccc; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1);";
-      themeToggleBtn.onclick = toggleTheme;
+      themeToggleBtn.onclick = () => {
+        document.body.classList.toggle("dark-mode");
+        const isDarkMode = document.body.classList.contains("dark-mode");
+        themeToggleBtn.innerText = isDarkMode ? "☀️" : "🌙";
+        localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+      };
       document.body.appendChild(themeToggleBtn);
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-mode");
+        themeToggleBtn.innerText = "☀️";
+      } else {
+        document.body.classList.remove("dark-mode");
+        themeToggleBtn.innerText = "🌙";
+      }
+
+      document.getElementById("ask-button").addEventListener("click", () => {
+        const text = `Quero criar uma página web que permita aos usuários se comunicarem com um assistente virtual. Preciso que a página tenha uma interface de login e cadastro, um chat principal onde possam enviar mensagens e receber respostas, um menu lateral para gerenciar conversas e um botão para fixar e apagar mensagens. Quero também ter a funcionalidade de fixar mensagens para revisão posterior, apagar mensagens individuais e apagar todo o chat. Adicionalmente, preciso que os usuários possam editar as próprias mensagens e fazer download do chat em PDF ou Word. Por favor, forneça o código HTML, CSS e JavaScript necessários para isso, incluindo a funcionalidade de comunicação com o assistente.`;
+        userInput.value = text;
+        sendMessage();
+      });
+
+      function showAskButton() {
+        if (chats[currentChat].messages.length === 0) {
+          askButton.style.display = "block";
+        } else {
+          askButton.style.display = "none";
+        }
+      }
+
+      function searchMessages() {
+        const query = searchInput.value.toLowerCase();
+        const chatMessages = document.querySelectorAll(".message-wrapper");
+        chatMessages.forEach((wrapper) => {
+          const text = wrapper.textContent.toLowerCase();
+          if (text.includes(query) || query === "") {
+            wrapper.style.display = "flex";
+          } else {
+            wrapper.style.display = "none";
+          }
+        });
+      }
     </script>
   </body>
 </html>
