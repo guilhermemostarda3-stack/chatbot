@@ -79,7 +79,7 @@
         width: 1200px;
         height: 650px;
         margin: 20px auto;
-        display: none;
+        display: none; /* Inicia oculto */
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -804,6 +804,7 @@
       const loginForm = document.getElementById("login-form");
       const registerForm = document.getElementById("register-form");
       const chatWrapper = document.getElementById("chat-wrapper");
+
       const userProfileModal = document.getElementById("user-profile-modal");
       const profileName = document.getElementById("profile-name");
       const profileEmail = document.getElementById("profile-email");
@@ -812,6 +813,7 @@
       const userInfoDiv = document.getElementById("user-info");
 
       const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
+
       let chats = [],
         currentChat = -1;
       let uploadedFile = null;
@@ -845,6 +847,7 @@
       function handleLogin() {
         const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
+
         const storedUser = localStorage.getItem("userData");
         if (storedUser) {
           const user = JSON.parse(storedUser);
@@ -864,6 +867,7 @@
         const email = document.getElementById("register-email").value;
         const password = document.getElementById("register-password").value;
         const dob = document.getElementById("register-dob").value;
+
         if (username && email && password && dob) {
           userData = { username, email, password, dob };
           localStorage.setItem("userData", JSON.stringify(userData));
@@ -892,7 +896,7 @@
         if (userData) {
           profileName.textContent = userData.username;
           profileEmail.textContent = userData.email;
-          profilePassword.textContent = "•".repeat(userData.password.length);
+          profilePassword.textContent = "•".repeat(userData.password.length); // Esconde a senha
           profileDob.textContent = userData.dob;
           userInfoDiv.classList.remove("hidden");
         }
@@ -938,29 +942,20 @@
           currentChat = 0;
           saveChats();
         }
-
         renderSidebar();
         renderCurrentChat();
       }
 
       function newChat() {
-        chats.push({ name: `Chat ${chats.length + 1}`, messages: [], isTyping: false });
+        chats.push({
+          name: `Chat ${chats.length + 1}`,
+          messages: [],
+          isTyping: false,
+        });
         currentChat = chats.length - 1;
         renderSidebar();
         renderCurrentChat();
         saveChats();
-      }
-
-      function clearCurrentChat() {
-        if (
-          confirm(
-            "Tem certeza que deseja apagar todas as mensagens deste chat?"
-          )
-        ) {
-          chats[currentChat].messages = [];
-          saveChats();
-          renderCurrentChat();
-        }
       }
 
       function clearAllChats() {
@@ -990,15 +985,19 @@
         chats[currentChat].messages.forEach((m) => {
           messages.appendChild(createMessageElement(m));
         });
+
         if (chats[currentChat].isTyping) {
           const typingWrapper = document.createElement("div");
           typingWrapper.className = "typing-indicator-wrapper";
+
           const typingIndicator = document.createElement("div");
           typingIndicator.className = "typing-indicator";
           typingIndicator.innerHTML = "<span></span><span></span><span></span>";
           typingWrapper.appendChild(typingIndicator);
+
           messages.appendChild(typingWrapper);
         }
+
         messages.scrollTop = messages.scrollHeight;
       }
 
@@ -1016,7 +1015,9 @@
 
       function deleteChat(index) {
         if (
-          confirm(`Tem certeza de que deseja apagar o chat "${chats[index].name}"?`)
+          confirm(
+            `Tem certeza de que deseja apagar o chat "${chats[index].name}"?`
+          )
         ) {
           chats.splice(index, 1);
           if (chats.length === 0) {
@@ -1032,38 +1033,43 @@
 
       function renderSidebar() {
         sidebar.innerHTML = "";
+
         const userBtn = document.createElement("div");
         userBtn.className = "sidebar-btn";
         userBtn.innerHTML = `<span>👤 Usuário</span>`;
         userBtn.onclick = showUserProfile;
         sidebar.appendChild(userBtn);
+
         const pinnedBtn = document.createElement("div");
         pinnedBtn.className = "sidebar-btn";
         pinnedBtn.innerHTML = `<span>⭐ Fixados</span>`;
         pinnedBtn.onclick = togglePinnedColumn;
         sidebar.appendChild(pinnedBtn);
+
         chats.forEach((c, i) => {
           const btn = document.createElement("div");
           btn.className = "sidebar-btn" + (i === currentChat ? " active" : "");
           btn.innerHTML = `
-        <span>${c.name}</span>
-        <div class="sidebar-btn-options" onclick="event.stopPropagation(); showChatMenu(event, ${i})">...</div>
-        <div id="chat-menu-${i}" class="chat-menu">
-          <button onclick="renameChat(${i})">Renomear</button>
-          <button onclick="deleteChat(${i})">Apagar</button>
-        </div>
-      `;
+            <span>${c.name}</span>
+            <div class="sidebar-btn-options" onclick="event.stopPropagation(); showChatMenu(event, ${i})">...</div>
+            <div id="chat-menu-${i}" class="chat-menu">
+              <button onclick="renameChat(${i})">Renomear</button>
+              <button onclick="deleteChat(${i})">Apagar</button>
+            </div>
+          `;
           btn.onclick = () => {
             switchChat(i);
             pinnedColumn.style.display = "none";
           };
           sidebar.appendChild(btn);
         });
+
         const newBtn = document.createElement("div");
         newBtn.className = "sidebar-btn";
         newBtn.textContent = "+ Novo Chat";
         newBtn.onclick = newChat;
         sidebar.appendChild(newBtn);
+
         const resetBtn = document.createElement("div");
         resetBtn.className = "sidebar-btn";
         resetBtn.textContent = "Apagar Tudo";
@@ -1104,7 +1110,9 @@
           doc.text(text, 10, 10);
           doc.save("mensagem.pdf");
         } else if (type === "word") {
-          const blob = new Blob([text], { type: "application/msword" });
+          const blob = new Blob([text], {
+            type: "application/msword",
+          });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
           link.download = "mensagem.doc";
@@ -1137,8 +1145,17 @@
       }
 
       function createMessageElement(messageData) {
-        const { text, sender, pinned, fileName, id, chatIndex, isImage, isLinkList } =
-          messageData;
+        const {
+          text,
+          sender,
+          pinned,
+          fileName,
+          id,
+          chatIndex,
+          isImage,
+          isLinkList,
+        } = messageData;
+
         const wrapper = document.createElement("div");
         wrapper.className = "message-wrapper";
         wrapper.setAttribute("data-id", id);
@@ -1161,289 +1178,749 @@
           msgDiv.appendChild(imgElement);
         } else if (isLinkList) {
           const title = document.createElement("p");
-          title.innerHTML = `**Aqui estão alguns sites para "a sua pesquisa":**`;
+          title.innerHTML = `**Aqui estão alguns sites para encontrar imagens sobre o seu tema:**`;
           msgDiv.appendChild(title);
           const ul = document.createElement("ul");
-          text.forEach((item) => {
+          text.forEach((linkObj) => {
             const li = document.createElement("li");
             const a = document.createElement("a");
-            a.href = item.url;
-            a.textContent = item.title || item.url;
+            a.href = linkObj.url;
+            a.textContent = linkObj.name;
             a.target = "_blank";
-            a.rel = "noopener noreferrer";
             li.appendChild(a);
             ul.appendChild(li);
           });
           msgDiv.appendChild(ul);
         } else {
-          let formattedText = text.replace(
-            /(https?:\/\/[^\s]+)/g,
-            '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-          );
-          formattedText = formattedText.replace(
-            /\*\*(.*?)\*\*/g,
-            "<strong>$1</strong>"
-          );
-          formattedText = formattedText.replace(/\*(.*?)\*/g, "<em>$1</em>");
-          msgDiv.innerHTML = formattedText;
+          msgDiv.innerText = text;
         }
 
         wrapper.appendChild(msgDiv);
 
-        if (sender === "bot") {
-          const actionsDiv = document.createElement("div");
-          actionsDiv.className = "msg-actions";
+        if (text) {
+          const actions = document.createElement("div");
+          actions.className = "msg-actions";
+          actions.style.justifyContent =
+            sender === "user" ? "flex-end" : "flex-start";
+
+          if (sender === "bot") {
+            const editBtn = document.createElement("button");
+            editBtn.innerText = "Editar";
+            editBtn.onclick = () => startEdit(id);
+            actions.appendChild(editBtn);
+
+            const summarizeBtn = document.createElement("button");
+            summarizeBtn.innerText = "Resumir";
+            summarizeBtn.onclick = async () => {
+              const newId = Date.now();
+              addMessageToChat({ text: "", sender: "bot" }, currentChat);
+              chats[currentChat].isTyping = true;
+              renderCurrentChat();
+              try {
+                const promptText = `Por favor, resuma o seguinte texto de forma concisa:\n\n"${text}"`;
+                const response = await puter.ai.chat(promptText, {
+                  model: "gpt-5-nano",
+                });
+                handleIncomingResponse(response, newId);
+              } catch (e) {
+                handleIncomingResponse(
+                  "Não foi possível gerar o resumo. Por favor, tente novamente mais tarde.",
+                  newId,
+                  true
+                );
+              }
+            };
+            actions.appendChild(summarizeBtn);
+
+            const downloadDropdown = document.createElement("div");
+            downloadDropdown.className = "download-dropdown";
+            const downloadBtn = document.createElement("button");
+            downloadBtn.innerText = "Download";
+            downloadBtn.onclick = (e) => {
+              e.stopPropagation();
+              const dropdownContent = downloadBtn.nextElementSibling;
+              dropdownContent.style.display =
+                dropdownContent.style.display === "block" ? "none" : "block";
+            };
+            const dropdownContent = document.createElement("div");
+            dropdownContent.className = "download-dropdown-content";
+
+            if (isImage) {
+              const imgDownloadBtn = document.createElement("button");
+              imgDownloadBtn.innerText = "Baixar Foto";
+              imgDownloadBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadImage(text);
+                dropdownContent.style.display = "none";
+              };
+              dropdownContent.appendChild(imgDownloadBtn);
+            } else {
+              const pdfBtn = document.createElement("button");
+              pdfBtn.innerText = "PDF";
+              pdfBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadSingleMessage(text, "pdf");
+                dropdownContent.style.display = "none";
+              };
+              const wordBtn = document.createElement("button");
+              wordBtn.innerText = "Word";
+              wordBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadSingleMessage(text, "word");
+                dropdownContent.style.display = "none";
+              };
+              dropdownContent.appendChild(pdfBtn);
+              dropdownContent.appendChild(wordBtn);
+            }
+
+            downloadDropdown.appendChild(downloadBtn);
+            downloadDropdown.appendChild(dropdownContent);
+            actions.appendChild(downloadDropdown);
+          }
 
           const pinBtn = document.createElement("button");
-          pinBtn.innerHTML = pinned ? "📌 Desafixar" : "📌 Fixar";
-          pinBtn.onclick = () => pinMessage(id);
-          actionsDiv.appendChild(pinBtn);
+          pinBtn.innerText = pinned ? "Desafixar" : "Fixar";
+          pinBtn.onclick = () => {
+            const m = chats[currentChat].messages.find((m) => m.id === id);
+            if (m) {
+              m.pinned = !m.pinned;
+              saveChats();
+              renderCurrentChat();
+              updatePinnedColumn();
+            }
+          };
+          const delBtn = document.createElement("button");
+          delBtn.innerText = "Apagar";
+          delBtn.onclick = () => {
+            deleteMessage(id);
+          };
 
-          const copyBtn = document.createElement("button");
-          copyBtn.innerHTML = "📋 Copiar";
-          copyBtn.onclick = () => copyMessage(text);
-          actionsDiv.appendChild(copyBtn);
+          actions.appendChild(pinBtn);
+          actions.appendChild(delBtn);
 
-          const deleteBtn = document.createElement("button");
-          deleteBtn.innerHTML = "🗑 Apagar";
-          deleteBtn.onclick = () => deleteMessage(id);
-          actionsDiv.appendChild(deleteBtn);
-
-          const downloadBtn = document.createElement("button");
-          downloadBtn.innerHTML = "📥 Baixar";
-          downloadBtn.onclick = () => showDownloadOptions(downloadBtn);
-          actionsDiv.appendChild(downloadBtn);
-
-          const dropdown = document.createElement("div");
-          dropdown.className = "download-dropdown-content";
-          dropdown.style.display = "none";
-
-          const pdfBtn = document.createElement("button");
-          pdfBtn.innerHTML = "PDF";
-          pdfBtn.onclick = () => downloadSingleMessage(text, "pdf");
-          dropdown.appendChild(pdfBtn);
-
-          const wordBtn = document.createElement("button");
-          wordBtn.innerHTML = "Word";
-          wordBtn.onclick = () => downloadSingleMessage(text, "word");
-          dropdown.appendChild(wordBtn);
-
-          downloadBtn.parentElement.appendChild(dropdown);
-
-          const brainstormBtn = document.createElement("button");
-          brainstormBtn.innerHTML = "💡 Mapa de Ideias";
-          brainstormBtn.onclick = () => openMermaidModal(text);
-          actionsDiv.appendChild(brainstormBtn);
-
-          msgDiv.appendChild(actionsDiv);
-        } else {
-          const actionsDiv = document.createElement("div");
-          actionsDiv.className = "msg-actions";
-          actionsDiv.style.justifyContent = "flex-end";
-
-          const editBtn = document.createElement("button");
-          editBtn.innerHTML = "✏️ Editar";
-          editBtn.onclick = () => editMessage(id, text);
-          actionsDiv.appendChild(editBtn);
-
-          const pinBtn = document.createElement("button");
-          pinBtn.innerHTML = pinned ? "📌 Desafixar" : "📌 Fixar";
-          pinBtn.onclick = () => pinMessage(id);
-          actionsDiv.appendChild(pinBtn);
-
-          const copyBtn = document.createElement("button");
-          copyBtn.innerHTML = "📋 Copiar";
-          copyBtn.onclick = () => copyMessage(text);
-          actionsDiv.appendChild(copyBtn);
-
-          const deleteBtn = document.createElement("button");
-          deleteBtn.innerHTML = "🗑 Apagar";
-          deleteBtn.onclick = () => deleteMessage(id);
-          actionsDiv.appendChild(deleteBtn);
-
-          msgDiv.appendChild(actionsDiv);
+          wrapper.appendChild(actions);
         }
+
         return wrapper;
       }
 
-      function showDownloadOptions(button) {
-        const dropdown = button.parentElement.querySelector(".download-dropdown-content");
-        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+      function addMessageToChat(messageData, chatIndex, aiRequestId = null) {
+        const newMessage = {
+          id: Date.now(),
+          aiRequestId,
+          ...messageData,
+        };
+        chats[chatIndex].messages.push(newMessage);
+        saveChats();
+
+        if (chatIndex === currentChat) {
+          renderCurrentChat();
+        }
+        return newMessage;
       }
 
-      function openMermaidModal(text) {
-        if (!mermaid) {
-          alert("A biblioteca Mermaid não foi carregada. Tente novamente mais tarde.");
+      function generateMermaidSyntaxFromJSON(jsonData) {
+        if (!jsonData || !jsonData.nodes || !jsonData.links) {
+          return null;
+        }
+
+        let mermaidSyntax = "graph TD\n";
+        const nodeMap = new Map();
+        jsonData.nodes.forEach((node, index) => {
+          const safeNodeId = node.replace(/[^a-zA-Z0-9]/g, "_");
+          nodeMap.set(node, `N${index}(["${node}"])`);
+        });
+
+        jsonData.links.forEach((link) => {
+          const source = link[0];
+          const target = link[1];
+          if (nodeMap.has(source) && nodeMap.has(target)) {
+            mermaidSyntax += `    ${nodeMap.get(source).split('(["')[0]} --> ${
+              nodeMap.get(target).split('(["')[0]
+            }\n`;
+          }
+        });
+
+        let uniqueNodesSyntax = "";
+        nodeMap.forEach((value) => {
+          uniqueNodesSyntax += `    ${value}\n`;
+        });
+
+        return mermaidSyntax + uniqueNodesSyntax;
+      }
+
+      function showMapModal(aiResponse) {
+        if (typeof aiResponse !== "string") {
+          alert(
+            "Não foi possível gerar o mapa. A IA retornou um formato de dados inesperado. Por favor, tente mapear uma mensagem diferente."
+          );
           return;
         }
 
-        mermaid.render("mermaid-chart", `graph TD; A[Mensagem Original] --> B[Análise de Ideias]; B --> C[Ideia 1]; B --> D[Ideia 2];`).then(({ svg }) => {
-          mermaidContainer.innerHTML = svg;
+        try {
+          const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) {
+            throw new Error("Conteúdo JSON não encontrado na resposta.");
+          }
+          const jsonString = jsonMatch[0];
+
+          const jsonData = JSON.parse(jsonString);
+          const mermaidSyntax = generateMermaidSyntaxFromJSON(jsonData);
+
+          if (!mermaidSyntax) {
+            throw new Error("Formato JSON inválido ou incompleto.");
+          }
+
+          mermaidContainer.innerHTML = `<pre class="mermaid">${mermaidSyntax}</pre>`;
           mapModal.style.display = "block";
-        });
+          mermaid.init(undefined, mermaidContainer);
+        } catch (e) {
+          console.error("Erro ao gerar mapa:", e);
+          const errorMessage = `Não foi possível gerar o mapa. A IA retornou um formato de dados inesperado. Por favor, tente mapear uma mensagem diferente. Detalhes: ${e.message}`;
+          alert(errorMessage);
+        }
       }
 
       function closeModal(modalId) {
         document.getElementById(modalId).style.display = "none";
       }
 
-      function deleteMessage(messageId) {
-        chats[currentChat].messages = chats[currentChat].messages.filter(
-          (m) => m.id !== messageId
-        );
-        saveChats();
-        renderCurrentChat();
-      }
-
-      function pinMessage(messageId) {
-        const message = chats[currentChat].messages.find((m) => m.id === messageId);
-        if (message) {
-          message.pinned = !message.pinned;
-          saveChats();
-          renderCurrentChat();
-          updatePinnedColumn();
+      window.onclick = function (event) {
+        if (event.target == mapModal) {
+          closeModal("map-modal");
         }
-      }
+        if (event.target == userProfileModal) {
+          closeModal("user-profile-modal");
+        }
+      };
 
       function updatePinnedColumn() {
+        const filterValue = pinnedFilter.value;
         pinnedList.innerHTML = "";
-        const pinnedMessages = chats.flatMap((chat, index) =>
-          chat.messages.filter((m) => m.pinned).map((m) => ({ ...m, chatIndex: index }))
-        );
 
-        const filter = pinnedFilter.value;
-        const filteredMessages = pinnedMessages.filter((m) => {
-          if (filter === "all") return true;
-          return m.sender === filter;
+        const allPinned = [];
+        chats.forEach((chat, chatIndex) => {
+          chat.messages.forEach((msg) => {
+            if (msg.pinned) {
+              allPinned.push({
+                ...msg,
+                chatIndex: chatIndex,
+                chatName: chat.name,
+              });
+            }
+          });
         });
 
-        if (filteredMessages.length > 0) {
-          filteredMessages.forEach((m) => {
-            const btn = document.createElement("div");
-            btn.className = "pinned-btn";
-            btn.innerHTML = `<p>${m.text.substring(0, 50)}...</p>`;
-            btn.onclick = () => {
-              switchChat(m.chatIndex);
-              setTimeout(() => {
-                const element = document.querySelector(
-                  `.message-wrapper[data-id="${m.id}"]`
-                );
-                if (element) {
-                  element.scrollIntoView({ behavior: "smooth", block: "center" });
-                  element.classList.add("highlight-message");
-                  setTimeout(
-                    () => element.classList.remove("highlight-message"),
-                    2000
-                  );
-                }
-              }, 500);
-            };
-            pinnedList.appendChild(btn);
-          });
-        } else {
-          pinnedList.innerHTML = "<p>Nenhuma mensagem fixada.</p>";
+        const filteredPinned = allPinned.filter(
+          (m) => filterValue === "all" || m.sender === filterValue
+        );
+
+        if (filteredPinned.length === 0) {
+          pinnedList.innerHTML = `<p style="color:#666;text-align:center;padding:20px;">Nenhuma mensagem fixada.</p>`;
+          return;
         }
+
+        filteredPinned.forEach((m) => {
+          const btn = document.createElement("div");
+          btn.className = "pinned-btn";
+          btn.innerHTML = `**${m.chatName} (${m.sender})**<br>${m.text.slice(
+            0,
+            50
+          )}...`;
+          btn.onclick = () => goToPinnedMessage(m.chatIndex, m.id);
+          pinnedList.appendChild(btn);
+        });
       }
 
       function filterPinned() {
         updatePinnedColumn();
       }
 
-      function copyMessage(text) {
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            alert("Mensagem copiada para a área de transferência!");
-          })
-          .catch((err) => {
-            console.error("Erro ao copiar mensagem:", err);
-            alert("Falha ao copiar a mensagem.");
-          });
+      function goToPinnedMessage(chatIndex, messageId) {
+        switchChat(chatIndex);
+        setTimeout(() => {
+          const msgDiv = document.querySelector(
+            `[data-id="${messageId}"] .message`
+          );
+          if (msgDiv) {
+            msgDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+            msgDiv.classList.add("highlight-message");
+            setTimeout(() => {
+              msgDiv.classList.remove("highlight-message");
+            }, 2000);
+          }
+        }, 100);
+      }
+
+      function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
+        modalContent.classList.toggle("dark-mode");
+      }
+
+      function clearCurrentChat() {
+        if (currentChat < 0) return;
+        if (confirm("Deseja apagar todas as mensagens do chat?")) {
+          messages.innerHTML = "";
+          chats[currentChat].messages = [];
+          saveChats();
+          updatePinnedColumn();
+        }
+      }
+
+      function searchMessages() {
+        const term = searchInput.value.toLowerCase();
+        document.querySelectorAll(".message").forEach((msg) => {
+          msg.parentElement.style.display = msg.innerText
+            .toLowerCase()
+            .includes(term)
+            ? "flex"
+            : "none";
+        });
       }
 
       function handleFileUpload(event) {
         const file = event.target.files[0];
         if (file) {
           uploadedFile = file;
-          fileNameSpan.textContent = file.name;
+          userInput.value = "Analisar documento";
+          fileNameSpan.textContent = uploadedFile.name;
           fileInfoBar.style.display = "flex";
-          fileMenuDropdown.style.display = "none";
-          userInput.placeholder = `Pergunte sobre ${file.name}...`;
         }
+        event.target.value = null;
+        fileMenuDropdown.style.display = "none";
       }
 
       function clearFileSelection() {
         uploadedFile = null;
+        userInput.value = "";
         fileNameSpan.textContent = "";
         fileInfoBar.style.display = "none";
-        userInput.placeholder = "Digite sua mensagem...";
       }
 
-      function editMessage(id, oldText) {
-        if (isEditing) return;
-        isEditing = true;
-        originalMessageId = id;
-
-        const messageDiv = document.querySelector(
-          `.message-wrapper[data-id="${id}"] .message`
+      function deleteMessage(messageId) {
+        const messageIndex = chats[currentChat].messages.findIndex(
+          (m) => m.id === messageId
         );
-        const actionsContainer = document.querySelector(
-          `.message-wrapper[data-id="${id}"] .msg-actions`
+        if (messageIndex === -1) return;
+
+        const messageToDelete = chats[currentChat].messages[messageIndex];
+
+        if (messageToDelete.sender === "bot") {
+          if (
+            messageToDelete.aiRequestId &&
+            activeRequests.has(messageToDelete.aiRequestId)
+          ) {
+            activeRequests.get(messageToDelete.aiRequestId).controller.abort();
+            activeRequests.delete(messageToDelete.aiRequestId);
+          }
+          if (
+            messageIndex > 0 &&
+            chats[currentChat].messages[messageIndex - 1].sender === "user"
+          ) {
+            chats[currentChat].messages.splice(messageIndex - 1, 2);
+          } else {
+            chats[currentChat].messages.splice(messageIndex, 1);
+          }
+        } else {
+          const botMessageIndex = messageIndex + 1;
+          if (
+            botMessageIndex < chats[currentChat].messages.length &&
+            chats[currentChat].messages[botMessageIndex].sender === "bot"
+          ) {
+            const botMessage = chats[current - 1].messages[botMessageIndex];
+            if (
+              botMessage.aiRequestId &&
+              activeRequests.has(botMessage.aiRequestId)
+            ) {
+              activeRequests.get(botMessage.aiRequestId).controller.abort();
+              activeRequests.delete(botMessage.aiRequestId);
+            }
+            chats[currentChat].messages.splice(messageIndex, 2);
+          } else {
+            chats[currentChat].messages.splice(messageIndex, 1);
+          }
+        }
+
+        renderCurrentChat();
+        saveChats();
+        updatePinnedColumn();
+      }
+
+      function isGifRequest(text) {
+        const gifKeywords = [
+          "gif",
+          "giphy",
+          "gify",
+          "jif",
+          "jiphy",
+          "me mostra um gif",
+          "me mostra um gife",
+          "procurar gif",
+          "encontrar gif",
+          "criar gif",
+          "fazer gif",
+        ];
+        const lowerCaseText = text.toLowerCase();
+        return gifKeywords.some((keyword) => lowerCaseText.includes(keyword));
+      }
+
+      function isImageRequest(text) {
+        const imageKeywords = [
+          "foto",
+          "imagem",
+          "figura",
+          "desenho",
+          "ilustracao",
+          "gerar foto",
+          "criar imagem",
+          "procurar foto",
+          "mostrar foto",
+          "me mostra uma imagem",
+          "me mostra uma foto",
+          "me mostra um desenho",
+          "procura uma imagem",
+          "procurar imagem",
+          "buscar foto",
+          "buscar imagem",
+          "crie uma imagem de",
+          "faz uma imagem de",
+          "desenha um",
+          "desenha uma",
+          "fotografia de",
+        ];
+        const lowerCaseText = text.toLowerCase();
+        return imageKeywords.some((keyword) => lowerCaseText.includes(keyword));
+      }
+
+      function extractSearchTerm(text) {
+        const keywordsToRemove = [
+          "foto",
+          "imagem",
+          "figura",
+          "desenho",
+          "gif",
+          "giphy",
+          "gify",
+          "jif",
+          "jiphy",
+          "ilustracao",
+          "arte",
+          "pintura",
+          "gravura",
+          "esboço",
+          "sketch",
+          "renderizacao",
+          "fotografia",
+          "image",
+          "picture",
+          "de",
+          "do",
+          "da",
+          "o",
+          "a",
+          "um",
+          "uma",
+          "me",
+          "mostra",
+          "quero",
+          "ver",
+          "procurar",
+          "mostrar",
+          "buscar",
+          "criar",
+          "gere",
+          "crie",
+          "mostre",
+          "preciso",
+          "procure",
+          "visualizar",
+          "exibir",
+          "encontrar",
+          "desenhe",
+          "desenhar",
+          "renderizar",
+          "faz",
+          "picture",
+          "of",
+        ];
+        const lowerCaseText = text.toLowerCase();
+        const words = lowerCaseText.split(" ");
+        const filteredWords = words.filter(
+          (word) => !keywordsToRemove.includes(word)
+        );
+        return filteredWords.join(" ").trim();
+      }
+
+      async function searchForGif(searchTerm, botMessageId) {
+        try {
+          const url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&offset=0&rating=g&lang=en`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          const messageToUpdate = chats[currentChat].messages.find(
+            (m) => m.id === botMessageId
+          );
+
+          if (data.data && data.data.length > 0) {
+            const imageUrl = data.data[0].images.original.url;
+            messageToUpdate.text = imageUrl;
+            messageToUpdate.isImage = true;
+          } else {
+            messageToUpdate.text = `Desculpe, não encontrei nenhum gif para "${searchTerm}".`;
+          }
+        } catch (error) {
+          console.error("Erro ao buscar o gif:", error);
+          const messageToUpdate = chats[currentChat].messages.find(
+            (m) => m.id === botMessageId
+          );
+          messageToUpdate.text =
+            "Ocorreu um erro ao carregar o gif. Tente novamente mais tarde.";
+        } finally {
+          chats[currentChat].isTyping = false;
+          renderCurrentChat();
+          saveChats();
+        }
+      }
+
+      function searchForImageLinks(searchTerm, botMessageId) {
+        const links = [
+          {
+            name: "Pexels",
+            url: `https://www.pexels.com/search/${searchTerm}/`,
+          },
+          {
+            name: "Pixabay",
+            url: `https://pixabay.com/images/search/${searchTerm}/`,
+          },
+          {
+            name: "Unsplash",
+            url: `https://unsplash.com/s/photos/${searchTerm}`,
+          },
+          {
+            name: "Freepik",
+            url: `https://www.freepik.com/search?format=search&query=${searchTerm}`,
+          },
+        ];
+
+        const messageToUpdate = chats[currentChat].messages.find(
+          (m) => m.id === botMessageId
+        );
+        messageToUpdate.text = links;
+        messageToUpdate.isLinkList = true;
+        chats[currentChat].isTyping = false;
+        renderCurrentChat();
+        saveChats();
+      }
+
+      async function sendMessage(
+        text = userInput.value.trim(),
+        file = uploadedFile
+      ) {
+        if (currentChat < 0) newChat();
+
+        if (!text && !file) return;
+
+        for (let [reqId, reqData] of activeRequests.entries()) {
+          reqData.controller.abort();
+          activeRequests.delete(reqId);
+        }
+        chats[currentChat].isTyping = false;
+
+        const userMessage = addMessageToChat(
+          { text, sender: "user", fileName: file ? file.name : null },
+          currentChat
         );
 
-        if (!messageDiv || !actionsContainer) {
-          isEditing = false;
+        userInput.value = "";
+        clearFileSelection();
+
+        const searchTerm = extractSearchTerm(text);
+
+        if (isGifRequest(text)) {
+          const placeholderMessage = addMessageToChat(
+            { text: "Buscando gif...", sender: "bot", isImage: false },
+            currentChat
+          );
+          chats[currentChat].isTyping = true;
+          renderCurrentChat();
+          searchForGif(searchTerm, placeholderMessage.id);
           return;
         }
 
-        const editArea = document.createElement("textarea");
-        editArea.className = "edit-textarea";
-        editArea.value = oldText;
+        if (isImageRequest(text)) {
+          const placeholderMessage = addMessageToChat(
+            {
+              text: "Buscando links de imagens gratuitas...",
+              sender: "bot",
+              isLinkList: false,
+            },
+            currentChat
+          );
+          chats[currentChat].isTyping = true;
+          renderCurrentChat();
+          searchForImageLinks(searchTerm, placeholderMessage.id);
+          return;
+        }
+
+        let prompt = text;
+
+        if (file) {
+          try {
+            const fileReader = new FileReader();
+            const fileContent = await new Promise((resolve, reject) => {
+              fileReader.onload = (e) => resolve(e.target.result);
+              fileReader.onerror = (e) => reject(e);
+              fileReader.readAsText(file);
+            });
+            prompt = `O usuário fez o upload de um arquivo. O conteúdo do arquivo é:\n\n---\n${fileContent}\n---\n\nE a pergunta é: "${text}". Por favor, analise o documento e responda à pergunta.`;
+          } catch (e) {
+            console.error("Failed to read file:", e);
+            const errorMessage =
+              "Desculpe, não consegui ler o arquivo. Por favor, tente outro formato ou arquivo.";
+            addMessageToChat(
+              { text: errorMessage, sender: "bot" },
+              currentChat
+            );
+            return;
+          }
+        }
+
+        const controller = new AbortController();
+        const signal = controller.signal;
+        const aiRequestId = Date.now();
+
+        const placeholderMessage = addMessageToChat(
+          { text: "", sender: "bot", aiRequestId },
+          currentChat
+        );
+        activeRequests.set(aiRequestId, { controller });
+
+        chats[currentChat].isTyping = true;
+        renderCurrentChat();
+
+        try {
+          const response = await puter.ai.chat(prompt, {
+            model: "gpt-5-nano",
+            signal,
+          });
+          handleIncomingResponse(response, aiRequestId);
+        } catch (e) {
+          if (e.name === "AbortError") {
+            console.log("AI request aborted");
+            handleIncomingResponse(null, aiRequestId, false, true);
+          } else {
+            console.error("AI request failed:", e);
+            const errorMessage =
+              "Desculpe, o serviço de IA falhou. Por favor, tente novamente.";
+            handleIncomingResponse(errorMessage, aiRequestId, true);
+          }
+        }
+      }
+
+      async function handleIncomingResponse(
+        text,
+        requestId,
+        isError = false,
+        isAborted = false
+      ) {
+        const requestData = activeRequests.get(requestId);
+        if (isAborted) {
+          return;
+        }
+
+        activeRequests.delete(requestId);
+
+        let messageToUpdate = chats[currentChat].messages.find(
+          (m) => m.aiRequestId === requestId
+        );
+
+        if (messageToUpdate) {
+          if (isAborted) {
+            const userMessageIndex = chats[currentChat].messages.findIndex(
+              (m) => m.id === messageToUpdate.id - 1
+            );
+            if (userMessageIndex !== -1) {
+              chats[currentChat].messages.splice(userMessageIndex, 2);
+            }
+          } else {
+            messageToUpdate.text = text;
+          }
+        }
+
+        chats[currentChat].isTyping = false;
+        renderCurrentChat();
+        saveChats();
+      }
+
+      function startEdit(id) {
+        if (isEditing) return;
+
+        isEditing = true;
+        originalMessageId = id;
+
+        const messageElement = document.querySelector(
+          `.message-wrapper[data-id="${id}"] .message`
+        );
+        const originalText = messageElement.innerText;
+
+        const textarea = document.createElement("textarea");
+        textarea.className = "edit-textarea";
+        textarea.value = originalText;
+
+        messageElement.replaceWith(textarea);
+
+        const actionsContainer = document.querySelector(
+          `.message-wrapper[data-id="${id}"] .msg-actions`
+        );
+        actionsContainer.style.display = "none";
 
         const editActions = document.createElement("div");
         editActions.className = "edit-actions";
 
         const saveBtn = document.createElement("button");
+        saveBtn.innerText = "Salvar";
         saveBtn.className = "save";
-        saveBtn.textContent = "Salvar";
-        saveBtn.onclick = () => saveEdit(id, editArea.value);
+        saveBtn.onclick = () => saveEdit(id, textarea.value);
 
         const cancelBtn = document.createElement("button");
+        cancelBtn.innerText = "Cancelar";
         cancelBtn.className = "cancel";
-        cancelBtn.textContent = "Cancelar";
-        cancelBtn.onclick = () => cancelEdit();
+        cancelBtn.onclick = () => cancelEdit(id, originalText);
 
         editActions.appendChild(saveBtn);
         editActions.appendChild(cancelBtn);
 
-        messageDiv.replaceWith(editArea);
-        actionsContainer.style.display = "none";
-        editArea.after(editActions);
-        editArea.focus();
+        textarea.after(editActions);
+
+        textarea.focus();
       }
 
       function saveEdit(id, newText) {
-        const messageIndex = chats[currentChat].messages.findIndex(
+        const messageObject = chats[currentChat].messages.find(
           (m) => m.id === id
         );
-        if (messageIndex !== -1) {
-          chats[currentChat].messages[messageIndex].text = newText;
-          saveChats();
-          renderCurrentChat();
+        if (messageObject) {
+          messageObject.text = newText;
         }
+
         isEditing = false;
-        originalMessageId = null;
+        renderCurrentChat();
+        saveChats();
       }
 
-      function cancelEdit() {
-        const id = originalMessageId;
-        const editArea = document.querySelector(
-          `.message-wrapper[data-id="${id}"] .edit-textarea`
+      function cancelEdit(id, originalText) {
+        const messageElement = document.querySelector(
+          `.message-wrapper[data-id="${id}"] textarea`
         );
+        const originalDiv = document.createElement("div");
+        originalDiv.className = "message bot";
+        originalDiv.innerText = originalText;
+
+        messageElement.replaceWith(originalDiv);
+
         const editActions = document.querySelector(
           `.message-wrapper[data-id="${id}"] .edit-actions`
         );
-        editArea.remove();
         editActions.remove();
 
         const actionsContainer = document.querySelector(
@@ -1455,184 +1932,29 @@
         renderCurrentChat();
       }
 
-      async function sendMessage() {
-        const userMessage = userInput.value.trim();
-        if (userMessage === "" && !uploadedFile) return;
-        if (isEditing) return;
-
-        const messageId = Date.now().toString();
-        const userMessageData = {
-          id: messageId,
-          text: userMessage,
-          sender: "user",
-          timestamp: new Date().toISOString(),
-          pinned: false,
-          fileName: uploadedFile ? uploadedFile.name : null,
-        };
-
-        chats[currentChat].messages.push(userMessageData);
-        saveChats();
-        renderCurrentChat();
-        userInput.value = "";
-
-        let conversationHistory = chats[currentChat].messages.map((msg) => {
-          return { role: msg.sender === "user" ? "user" : "model", parts: [{ text: msg.text }] };
-        });
-
-        // Add typing indicator
-        chats[currentChat].isTyping = true;
-        renderCurrentChat();
-
-        const generationConfig = {
-          temperature: 0.9,
-          topK: 1,
-          topP: 1,
-          maxOutputTokens: 2048,
-        };
-
-        const safetySettings = [{
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }, {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }, {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }, {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_MEDIUM_AND_ABOVE"
-        }, ];
-
-        const chatModel = puter.ai.GenerativeModel.fromModel("gemini-pro");
-
-        let stream;
-        try {
-          stream = await chatModel.generateContent({
-            contents: conversationHistory,
-            generationConfig,
-            safetySettings,
-          });
-
-          let botResponseText = '';
-          for await (const chunk of stream.stream) {
-            const chunkText = await chunk.text();
-            if (chunkText) {
-              botResponseText += chunkText;
-              const typingIndicator = messages.querySelector(".typing-indicator-wrapper");
-              if (typingIndicator) {
-                messages.removeChild(typingIndicator);
-              }
-              const tempMessage = {
-                id: Date.now().toString(),
-                text: botResponseText,
-                sender: "bot",
-                timestamp: new Date().toISOString(),
-                pinned: false,
-              };
-              messages.appendChild(createMessageElement(tempMessage));
-              messages.scrollTop = messages.scrollHeight;
-            }
-          }
-          const finalBotMessage = {
-            id: Date.now().toString(),
-            text: botResponseText,
-            sender: "bot",
-            timestamp: new Date().toISOString(),
-            pinned: false,
-          };
-          chats[currentChat].messages.push(finalBotMessage);
-          saveChats();
-        } catch (err) {
-          console.error("Error with AI model:", err);
-          chats[currentChat].messages.push({
-            id: Date.now().toString(),
-            text: "Desculpe, não consegui gerar uma resposta no momento. Por favor, tente novamente mais tarde.",
-            sender: "bot",
-            timestamp: new Date().toISOString(),
-            pinned: false,
-          });
-          saveChats();
-        } finally {
-          chats[currentChat].isTyping = false;
-          renderCurrentChat();
-        }
-      }
-
       userInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !isEditing) {
+        if (e.key === "Enter") {
           sendMessage();
         }
       });
-
       document
         .getElementById("send-btn")
         .addEventListener("click", () => sendMessage());
-
       document.getElementById("add-btn").addEventListener("click", () => {
         const dropdown = document.getElementById("file-menu-dropdown");
         dropdown.style.display =
           dropdown.style.display === "flex" ? "none" : "flex";
       });
-
-      document.getElementById("btn-pdf").onclick = () => {
-        uploadFile.accept = ".pdf";
-        uploadFile.click();
-      };
-      document.getElementById("btn-word").onclick = () => {
-        uploadFile.accept = ".doc,.docx";
-        uploadFile.click();
-      };
-      document.getElementById("btn-txt").onclick = () => {
-        uploadFile.accept = ".txt";
-        uploadFile.click();
-      };
+      document.getElementById("btn-pdf").onclick = () => uploadFile.click();
+      document.getElementById("btn-word").onclick = () => uploadFile.click();
+      document.getElementById("btn-txt").onclick = () => uploadFile.click();
 
       const themeToggleBtn = document.createElement("button");
       themeToggleBtn.innerText = "🌙";
       themeToggleBtn.style.cssText =
         "position: fixed; bottom: 20px; right: 20px; font-size: 24px; background: #fff; border-radius: 50%; width: 50px; height: 50px; border: 2px solid #ccc; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1);";
-      themeToggleBtn.onclick = () => {
-        document.body.classList.toggle("dark-mode");
-        const isDarkMode = document.body.classList.contains("dark-mode");
-        themeToggleBtn.innerText = isDarkMode ? "☀️" : "🌙";
-        localStorage.setItem("theme", isDarkMode ? "dark" : "light");
-      };
+      themeToggleBtn.onclick = toggleTheme;
       document.body.appendChild(themeToggleBtn);
-      if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
-        themeToggleBtn.innerText = "☀️";
-      } else {
-        document.body.classList.remove("dark-mode");
-        themeToggleBtn.innerText = "🌙";
-      }
-
-      document.getElementById("ask-button").addEventListener("click", () => {
-        const text = `Quero criar uma página web que permita aos usuários se comunicarem com um assistente virtual. Preciso que a página tenha uma interface de login e cadastro, um chat principal onde possam enviar mensagens e receber respostas, um menu lateral para gerenciar conversas e um botão para fixar e apagar mensagens. Quero também ter a funcionalidade de fixar mensagens para revisão posterior, apagar mensagens individuais e apagar todo o chat. Adicionalmente, preciso que os usuários possam editar as próprias mensagens e fazer download do chat em PDF ou Word. Por favor, forneça o código HTML, CSS e JavaScript necessários para isso, incluindo a funcionalidade de comunicação com o assistente.`;
-        userInput.value = text;
-        sendMessage();
-      });
-
-      function showAskButton() {
-        if (chats[currentChat].messages.length === 0) {
-          askButton.style.display = "block";
-        } else {
-          askButton.style.display = "none";
-        }
-      }
-
-      function searchMessages() {
-        const query = searchInput.value.toLowerCase();
-        const chatMessages = document.querySelectorAll(".message-wrapper");
-        chatMessages.forEach((wrapper) => {
-          const text = wrapper.textContent.toLowerCase();
-          if (text.includes(query) || query === "") {
-            wrapper.style.display = "flex";
-          } else {
-            wrapper.style.display = "none";
-          }
-        });
-      }
     </script>
   </body>
 </html>
