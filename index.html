@@ -818,7 +818,6 @@
       const fileInfoBar = document.getElementById("file-info-bar");
       const fileNameSpan = document.getElementById("file-name");
       const uploadFile = document.getElementById("upload-file");
-      const mermaidContainer = document.getElementById("mermaid-container");
       const mapModal = document.getElementById("map-modal");
       const profileModal = document.getElementById("profile-modal");
       const chatWrapper = document.getElementById("chat-wrapper");
@@ -827,6 +826,7 @@
       const profileUsername = document.getElementById("profile-username");
       const profileEmail = document.getElementById("profile-email");
       const profileDob = document.getElementById("profile-dob");
+      const mermaidContainer = document.getElementById("mermaid-container");
       const typingIndicatorElement = document.getElementById("typing-indicator");
 
       // Funções de Autenticação e Armazenamento
@@ -864,7 +864,7 @@
       function showChat() {
         loginForm.classList.add("hidden");
         registerForm.classList.add("hidden");
-        chatWrapper.classList.remove("hidden");
+        chatWrapper.style.display = 'flex'; // Use style.display para garantir que a propriedade seja sobrescrita.
         loadChats();
         renderSidebar();
       }
