@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChatBot Completo</title>
+    <title>Genesis</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
       rel="stylesheet"
@@ -14,16 +14,72 @@
         margin: 0;
         background: linear-gradient(135deg, #6e8efb, #a777e3);
         color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
       }
       body.dark-mode {
         background: linear-gradient(135deg, #1a1a1a, #333);
         color: #fff;
       }
+      .form-container {
+        background: #fff;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        border: 5px solid #4caf50;
+        text-align: center;
+      }
+      body.dark-mode .form-container {
+        background: #1e1e1e;
+        border: 5px solid #2e7d32;
+      }
+      .form-container h2 {
+        color: #4caf50;
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+      .form-container p {
+        color: #555;
+      }
+      .form-container input {
+        width: 100%;
+        padding: 15px;
+        border-radius: 15px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      .form-container button {
+        padding: 15px;
+        border-radius: 15px;
+        border: none;
+        background: #4caf50;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      .form-container button:hover {
+        background: #66bb6a;
+      }
+      .form-toggle {
+        font-size: 0.9em;
+        color: #007bff;
+        cursor: pointer;
+        margin-top: 10px;
+      }
       #chat-wrapper {
-        width: 1200px; /* Largura ajustada */
+        width: 1200px;
         height: 650px;
         margin: 20px auto;
-        display: flex;
+        display: none; /* Inicia oculto */
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -68,6 +124,11 @@
       }
       .sidebar-btn:hover {
         background: #66bb6a;
+      }
+      .sidebar-btn-options {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 0 5px;
       }
       .chat-menu {
         position: absolute;
@@ -122,7 +183,6 @@
         font-size: 14px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       }
-      /* Novo CSS para o nome */
       .chatbot-profile {
         display: flex;
         align-items: center;
@@ -132,7 +192,6 @@
         font-weight: bold;
         font-size: 1.2rem;
       }
-      /* Fim do novo CSS */
       #download-buttons {
         display: flex;
         flex-direction: column;
@@ -190,6 +249,11 @@
       }
       .message.pinned {
         border: 2px solid gold;
+      }
+      .message img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
       }
       .msg-actions {
         display: flex;
@@ -535,10 +599,89 @@
           background-color: transparent;
         }
       }
+      #user-profile-modal-content {
+        text-align: left;
+      }
+      #user-profile-modal-content h3 {
+        color: #4caf50;
+        margin-top: 0;
+      }
+      #user-profile-modal-content p {
+        font-size: 1.1em;
+        margin: 10px 0;
+      }
+      .modal-button-group {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .modal-button-group button {
+        padding: 12px 20px;
+        border-radius: 18px;
+        background: #4caf50;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+      .modal-button-group button:hover {
+        background: #66bb6a;
+      }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
-    <div id="chat-wrapper">
+    <div id="login-form" class="form-container">
+      <h2>Bem-vindo!</h2>
+      <p>Por favor, entre ou crie sua conta.</p>
+      <input type="email" id="login-email" placeholder="Seu e-mail" required />
+      <input
+        type="password"
+        id="login-password"
+        placeholder="Sua senha"
+        required
+      />
+      <button onclick="handleLogin()">Entrar</button>
+      <div class="form-toggle" onclick="toggleForm('register')">
+        Não tem uma conta? Cadastre-se
+      </div>
+    </div>
+
+    <div id="register-form" class="form-container hidden">
+      <h2>Bem-vindo ao Genesis</h2>
+      <p>Preencha seus dados para continuar.</p>
+      <input
+        type="text"
+        id="register-username"
+        placeholder="Nome de usuário"
+        required
+      />
+      <input
+        type="email"
+        id="register-email"
+        placeholder="Seu e-mail"
+        required
+      />
+      <input
+        type="password"
+        id="register-password"
+        placeholder="Crie sua senha"
+        required
+      />
+      <input type="date" id="register-dob" required />
+      <button onclick="handleRegister()">Cadastrar</button>
+      <div class="form-toggle" onclick="toggleForm('login')">
+        Já tem uma conta? Entrar
+      </div>
+    </div>
+
+    <div id="chat-wrapper" class="hidden">
       <div id="sidebar"></div>
       <div id="chat-area">
         <div id="chat-header">
@@ -608,9 +751,32 @@
 
     <div id="map-modal" class="modal">
       <div id="map-modal-content" class="modal-content">
-        <span class="close-button" onclick="closeModal()">&times;</span>
+        <span class="close-button" onclick="closeModal('map-modal')"
+          >&times;</span
+        >
         <h2>Mapa de Ideias</h2>
         <div id="mermaid-container"></div>
+      </div>
+    </div>
+
+    <div id="user-profile-modal" class="modal">
+      <div id="user-profile-modal-content" class="modal-content">
+        <span class="close-button" onclick="closeModal('user-profile-modal')"
+          >&times;</span
+        >
+        <h2>Perfil de Usuário</h2>
+        <div class="modal-button-group">
+          <button onclick="showUserData()">Ver Dados</button>
+          <button onclick="logout()">Sair da Conta</button>
+        </div>
+        <div id="user-info" class="hidden" style="margin-top: 20px">
+          <p><strong>Nome:</strong> <span id="profile-name"></span></p>
+          <p><strong>E-mail:</strong> <span id="profile-email"></span></p>
+          <p><strong>Senha:</strong> <span id="profile-password"></span></p>
+          <p>
+            <strong>Data de Nascimento:</strong> <span id="profile-dob"></span>
+          </p>
+        </div>
       </div>
     </div>
 
@@ -634,27 +800,117 @@
       const fileMenuDropdown = document.getElementById("file-menu-dropdown");
       const fileInfoBar = document.getElementById("file-info-bar");
       const fileNameSpan = document.getElementById("file-name");
-      const btnPdf = document.getElementById("btn-pdf");
-      const btnWord = document.getElementById("btn-word");
-      const btnTxt = document.getElementById("btn-txt");
+
+      const loginForm = document.getElementById("login-form");
+      const registerForm = document.getElementById("register-form");
+      const chatWrapper = document.getElementById("chat-wrapper");
+
+      const userProfileModal = document.getElementById("user-profile-modal");
+      const profileName = document.getElementById("profile-name");
+      const profileEmail = document.getElementById("profile-email");
+      const profilePassword = document.getElementById("profile-password");
+      const profileDob = document.getElementById("profile-dob");
+      const userInfoDiv = document.getElementById("user-info");
+
+      const GIPHY_API_KEY = "eLIbdvWpV2XcSqhAIEYS5Bf7E47lLaRG";
+
       let chats = [],
         currentChat = -1;
       let uploadedFile = null;
       let activeRequests = new Map();
       let isEditing = false;
       let originalMessageId = null;
-
-      // REMOVIDO: const imageSearchInput = document.getElementById("image-search-input");
-      // REMOVIDO: const imageResults = document.getElementById("image-results");
-
-      // REMOVIDO: Função performImageSearch
-      // REMOVIDO: imageSearchInput.addEventListener
+      let userData = null;
 
       mermaid.initialize({
         startOnLoad: false,
         theme: "default",
         securityLevel: "loose",
       });
+
+      window.onload = function () {
+        const storedUser = localStorage.getItem("userData");
+        if (storedUser) {
+          userData = JSON.parse(storedUser);
+          startChatSession();
+        } else {
+          toggleForm("login");
+        }
+      };
+
+      function toggleForm(formId) {
+        loginForm.classList.add("hidden");
+        registerForm.classList.add("hidden");
+        document.getElementById(formId + "-form").classList.remove("hidden");
+      }
+
+      function handleLogin() {
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
+
+        const storedUser = localStorage.getItem("userData");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          if (user.email === email && user.password === password) {
+            userData = user;
+            startChatSession();
+          } else {
+            alert("E-mail ou senha incorretos.");
+          }
+        } else {
+          alert("Nenhum usuário encontrado. Por favor, cadastre-se primeiro.");
+        }
+      }
+
+      function handleRegister() {
+        const username = document.getElementById("register-username").value;
+        const email = document.getElementById("register-email").value;
+        const password = document.getElementById("register-password").value;
+        const dob = document.getElementById("register-dob").value;
+
+        if (username && email && password && dob) {
+          userData = { username, email, password, dob };
+          localStorage.setItem("userData", JSON.stringify(userData));
+          startChatSession();
+        } else {
+          alert("Por favor, preencha todos os campos.");
+        }
+      }
+
+      function startChatSession() {
+        loginForm.classList.add("hidden");
+        registerForm.classList.add("hidden");
+        chatWrapper.classList.remove("hidden");
+        chatWrapper.style.display = "flex";
+        loadChats();
+      }
+
+      function showUserProfile() {
+        if (userData) {
+          userProfileModal.style.display = "block";
+          userInfoDiv.classList.add("hidden");
+        }
+      }
+
+      function showUserData() {
+        if (userData) {
+          profileName.textContent = userData.username;
+          profileEmail.textContent = userData.email;
+          profilePassword.textContent = "•".repeat(userData.password.length); // Esconde a senha
+          profileDob.textContent = userData.dob;
+          userInfoDiv.classList.remove("hidden");
+        }
+      }
+
+      function logout() {
+        if (confirm("Tem certeza que deseja sair da sua conta?")) {
+          localStorage.removeItem("userData");
+          userData = null;
+          chatWrapper.classList.add("hidden");
+          toggleForm("login");
+          closeModal("user-profile-modal");
+        }
+      }
 
       function saveChats() {
         try {
@@ -778,6 +1034,12 @@
       function renderSidebar() {
         sidebar.innerHTML = "";
 
+        const userBtn = document.createElement("div");
+        userBtn.className = "sidebar-btn";
+        userBtn.innerHTML = `<span>👤 Usuário</span>`;
+        userBtn.onclick = showUserProfile;
+        sidebar.appendChild(userBtn);
+
         const pinnedBtn = document.createElement("div");
         pinnedBtn.className = "sidebar-btn";
         pinnedBtn.innerHTML = `<span>⭐ Fixados</span>`;
@@ -858,8 +1120,41 @@
         }
       }
 
+      async function downloadImage(imageUrl) {
+        try {
+          const response = await fetch(imageUrl);
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.style.display = "none";
+          a.href = url;
+          a.download = `imagem_${Date.now()}.gif`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        } catch (error) {
+          console.error("Erro ao baixar a imagem:", error);
+          alert(
+            "Não foi possível baixar a imagem. Por favor, tente novamente mais tarde."
+          );
+        }
+      }
+
       function createMessageElement(messageData) {
-        const { text, sender, pinned, fileName, id, chatIndex } = messageData;
+        const {
+          text,
+          sender,
+          pinned,
+          fileName,
+          id,
+          chatIndex,
+          isImage,
+          isLinkList,
+        } = messageData;
 
         const wrapper = document.createElement("div");
         wrapper.className = "message-wrapper";
@@ -875,7 +1170,31 @@
         const msgDiv = document.createElement("div");
         msgDiv.className = "message " + sender;
         if (pinned) msgDiv.classList.add("pinned");
-        msgDiv.innerText = text;
+
+        if (isImage) {
+          const imgElement = document.createElement("img");
+          imgElement.src = text;
+          imgElement.alt = "Imagem gerada por IA";
+          msgDiv.appendChild(imgElement);
+        } else if (isLinkList) {
+          const title = document.createElement("p");
+          title.innerHTML = `**Aqui estão alguns sites para encontrar imagens sobre o seu tema:**`;
+          msgDiv.appendChild(title);
+          const ul = document.createElement("ul");
+          text.forEach((linkObj) => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = linkObj.url;
+            a.textContent = linkObj.name;
+            a.target = "_blank";
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+          msgDiv.appendChild(ul);
+        } else {
+          msgDiv.innerText = text;
+        }
+
         wrapper.appendChild(msgDiv);
 
         if (text) {
@@ -925,22 +1244,35 @@
             };
             const dropdownContent = document.createElement("div");
             dropdownContent.className = "download-dropdown-content";
-            const pdfBtn = document.createElement("button");
-            pdfBtn.innerText = "PDF";
-            pdfBtn.onclick = (e) => {
-              e.stopPropagation();
-              downloadSingleMessage(text, "pdf");
-              dropdownContent.style.display = "none";
-            };
-            const wordBtn = document.createElement("button");
-            wordBtn.innerText = "Word";
-            wordBtn.onclick = (e) => {
-              e.stopPropagation();
-              downloadSingleMessage(text, "word");
-              dropdownContent.style.display = "none";
-            };
-            dropdownContent.appendChild(pdfBtn);
-            dropdownContent.appendChild(wordBtn);
+
+            if (isImage) {
+              const imgDownloadBtn = document.createElement("button");
+              imgDownloadBtn.innerText = "Baixar Foto";
+              imgDownloadBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadImage(text);
+                dropdownContent.style.display = "none";
+              };
+              dropdownContent.appendChild(imgDownloadBtn);
+            } else {
+              const pdfBtn = document.createElement("button");
+              pdfBtn.innerText = "PDF";
+              pdfBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadSingleMessage(text, "pdf");
+                dropdownContent.style.display = "none";
+              };
+              const wordBtn = document.createElement("button");
+              wordBtn.innerText = "Word";
+              wordBtn.onclick = (e) => {
+                e.stopPropagation();
+                downloadSingleMessage(text, "word");
+                dropdownContent.style.display = "none";
+              };
+              dropdownContent.appendChild(pdfBtn);
+              dropdownContent.appendChild(wordBtn);
+            }
+
             downloadDropdown.appendChild(downloadBtn);
             downloadDropdown.appendChild(dropdownContent);
             actions.appendChild(downloadDropdown);
@@ -1049,14 +1381,16 @@
         }
       }
 
-      function closeModal() {
-        mapModal.style.display = "none";
-        mermaidContainer.innerHTML = "";
+      function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
       }
 
       window.onclick = function (event) {
         if (event.target == mapModal) {
-          closeModal();
+          closeModal("map-modal");
+        }
+        if (event.target == userProfileModal) {
+          closeModal("user-profile-modal");
         }
       };
 
@@ -1193,7 +1527,7 @@
             botMessageIndex < chats[currentChat].messages.length &&
             chats[currentChat].messages[botMessageIndex].sender === "bot"
           ) {
-            const botMessage = chats[currentChat].messages[botMessageIndex];
+            const botMessage = chats[current - 1].messages[botMessageIndex];
             if (
               botMessage.aiRequestId &&
               activeRequests.has(botMessage.aiRequestId)
@@ -1210,6 +1544,172 @@
         renderCurrentChat();
         saveChats();
         updatePinnedColumn();
+      }
+
+      function isGifRequest(text) {
+        const gifKeywords = [
+          "gif",
+          "giphy",
+          "gify",
+          "jif",
+          "jiphy",
+          "me mostra um gif",
+          "me mostra um gife",
+          "procurar gif",
+          "encontrar gif",
+          "criar gif",
+          "fazer gif",
+        ];
+        const lowerCaseText = text.toLowerCase();
+        return gifKeywords.some((keyword) => lowerCaseText.includes(keyword));
+      }
+
+      function isImageRequest(text) {
+        const imageKeywords = [
+          "foto",
+          "imagem",
+          "figura",
+          "desenho",
+          "ilustracao",
+          "gerar foto",
+          "criar imagem",
+          "procurar foto",
+          "mostrar foto",
+          "me mostra uma imagem",
+          "me mostra uma foto",
+          "me mostra um desenho",
+          "procura uma imagem",
+          "procurar imagem",
+          "buscar foto",
+          "buscar imagem",
+          "crie uma imagem de",
+          "faz uma imagem de",
+          "desenha um",
+          "desenha uma",
+          "fotografia de",
+        ];
+        const lowerCaseText = text.toLowerCase();
+        return imageKeywords.some((keyword) => lowerCaseText.includes(keyword));
+      }
+
+      function extractSearchTerm(text) {
+        const keywordsToRemove = [
+          "foto",
+          "imagem",
+          "figura",
+          "desenho",
+          "gif",
+          "giphy",
+          "gify",
+          "jif",
+          "jiphy",
+          "ilustracao",
+          "arte",
+          "pintura",
+          "gravura",
+          "esboço",
+          "sketch",
+          "renderizacao",
+          "fotografia",
+          "image",
+          "picture",
+          "de",
+          "do",
+          "da",
+          "o",
+          "a",
+          "um",
+          "uma",
+          "me",
+          "mostra",
+          "quero",
+          "ver",
+          "procurar",
+          "mostrar",
+          "buscar",
+          "criar",
+          "gere",
+          "crie",
+          "mostre",
+          "preciso",
+          "procure",
+          "visualizar",
+          "exibir",
+          "encontrar",
+          "desenhe",
+          "desenhar",
+          "renderizar",
+          "faz",
+          "picture",
+          "of",
+        ];
+        const lowerCaseText = text.toLowerCase();
+        const words = lowerCaseText.split(" ");
+        const filteredWords = words.filter(
+          (word) => !keywordsToRemove.includes(word)
+        );
+        return filteredWords.join(" ").trim();
+      }
+
+      async function searchForGif(searchTerm, botMessageId) {
+        try {
+          const url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&offset=0&rating=g&lang=en`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          const messageToUpdate = chats[currentChat].messages.find(
+            (m) => m.id === botMessageId
+          );
+
+          if (data.data && data.data.length > 0) {
+            const imageUrl = data.data[0].images.original.url;
+            messageToUpdate.text = imageUrl;
+            messageToUpdate.isImage = true;
+          } else {
+            messageToUpdate.text = `Desculpe, não encontrei nenhum gif para "${searchTerm}".`;
+          }
+        } catch (error) {
+          console.error("Erro ao buscar o gif:", error);
+          const messageToUpdate = chats[currentChat].messages.find(
+            (m) => m.id === botMessageId
+          );
+          messageToUpdate.text =
+            "Ocorreu um erro ao carregar o gif. Tente novamente mais tarde.";
+        } finally {
+          chats[currentChat].isTyping = false;
+          renderCurrentChat();
+          saveChats();
+        }
+      }
+
+      function searchForImageLinks(searchTerm, botMessageId) {
+        const links = [
+          {
+            name: "Pexels",
+            url: `https://www.pexels.com/search/${searchTerm}/`,
+          },
+          {
+            name: "Pixabay",
+            url: `https://pixabay.com/images/search/${searchTerm}/`,
+          },
+          {
+            name: "Unsplash",
+            url: `https://unsplash.com/s/photos/${searchTerm}`,
+          },
+          {
+            name: "Freepik",
+            url: `https://www.freepik.com/search?format=search&query=${searchTerm}`,
+          },
+        ];
+
+        const messageToUpdate = chats[currentChat].messages.find(
+          (m) => m.id === botMessageId
+        );
+        messageToUpdate.text = links;
+        messageToUpdate.isLinkList = true;
+        chats[currentChat].isTyping = false;
+        renderCurrentChat();
+        saveChats();
       }
 
       async function sendMessage(
@@ -1233,6 +1733,34 @@
 
         userInput.value = "";
         clearFileSelection();
+
+        const searchTerm = extractSearchTerm(text);
+
+        if (isGifRequest(text)) {
+          const placeholderMessage = addMessageToChat(
+            { text: "Buscando gif...", sender: "bot", isImage: false },
+            currentChat
+          );
+          chats[currentChat].isTyping = true;
+          renderCurrentChat();
+          searchForGif(searchTerm, placeholderMessage.id);
+          return;
+        }
+
+        if (isImageRequest(text)) {
+          const placeholderMessage = addMessageToChat(
+            {
+              text: "Buscando links de imagens gratuitas...",
+              sender: "bot",
+              isLinkList: false,
+            },
+            currentChat
+          );
+          chats[currentChat].isTyping = true;
+          renderCurrentChat();
+          searchForImageLinks(searchTerm, placeholderMessage.id);
+          return;
+        }
 
         let prompt = text;
 
@@ -1411,15 +1939,15 @@
       });
       document
         .getElementById("send-btn")
-        .addEventListener("click", sendMessage);
+        .addEventListener("click", () => sendMessage());
       document.getElementById("add-btn").addEventListener("click", () => {
         const dropdown = document.getElementById("file-menu-dropdown");
         dropdown.style.display =
           dropdown.style.display === "flex" ? "none" : "flex";
       });
-      btnPdf.onclick = () => uploadFile.click();
-      btnWord.onclick = () => uploadFile.click();
-      btnTxt.onclick = () => uploadFile.click();
+      document.getElementById("btn-pdf").onclick = () => uploadFile.click();
+      document.getElementById("btn-word").onclick = () => uploadFile.click();
+      document.getElementById("btn-txt").onclick = () => uploadFile.click();
 
       const themeToggleBtn = document.createElement("button");
       themeToggleBtn.innerText = "🌙";
@@ -1427,8 +1955,6 @@
         "position: fixed; bottom: 20px; right: 20px; font-size: 24px; background: #fff; border-radius: 50%; width: 50px; height: 50px; border: 2px solid #ccc; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1);";
       themeToggleBtn.onclick = toggleTheme;
       document.body.appendChild(themeToggleBtn);
-
-      window.addEventListener("load", loadChats);
     </script>
   </body>
 </html>
