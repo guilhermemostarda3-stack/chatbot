@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
 
-// A sua configuração do Firebase.
+// A sua configuraÃ§Ã£o do Firebase.
 const firebaseConfig = {
   apiKey: "AIzaSyB07UiQcdheXk9Ijc7F-VYZjZxPUlKnrJ4",
   authDomain: "chatbot-f6d84.firebaseapp.com",
@@ -22,7 +22,7 @@ const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-btn");
 const messagesContainer = document.getElementById("messages");
 
-// Função para exibir as mensagens na tela
+// FunÃ§Ã£o para exibir as mensagens na tela
 function displayMessage(messageText) {
   const messageElement = document.createElement("div");
   messageElement.className = "message user";
@@ -40,7 +40,7 @@ onSnapshot(q, (querySnapshot) => {
   });
 });
 
-// Função principal para lidar com o envio de mensagens
+// FunÃ§Ã£o principal para lidar com o envio de mensagens
 async function handleChat() {
     let message = userInput.value.trim();
     if (message === "") return;
@@ -57,7 +57,7 @@ async function handleChat() {
     }
 }
 
-// Evento para o botão de envio e a tecla Enter
+// Evento para o botÃ£o de envio e a tecla Enter
 sendButton.addEventListener("click", handleChat);
 userInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
